@@ -23,7 +23,7 @@ const names = [
   'CTA Final',
 ];
 
-function Upload({ label, url, onFile }) {
+function Upload({ label, url, onFile, transparent = true }) {
   return (
     <label className={'layerUpload ' + (url ? 'hasLayer' : '')}>
       <input
@@ -37,9 +37,33 @@ function Upload({ label, url, onFile }) {
       ) : (
         <>
           <strong>＋ {label}</strong>
-          <small>PNG transparente recomendado</small>
+          <small>
+            {transparent ? 'PNG transparente recomendado' : 'PNG, JPG ou WebP'}
+          </small>
         </>
       )}
+    </label>
+  );
+}
+
+function Slider({ title, value, min, max, onChange, suffix = '%' }) {
+  return (
+    <label className="motionSlider">
+      <div>
+        <span>{title}</span>
+        <b>
+          {value}
+          {suffix}
+        </b>
+      </div>
+
+      <input
+        type="range"
+        min={min}
+        max={max}
+        value={value}
+        onChange={(e) => onChange(Number(e.target.value))}
+      />
     </label>
   );
 }
@@ -54,10 +78,7 @@ function Section({ s, i, onFile, onChange, onRemove }) {
         </div>
 
         {s.url && (
-          <button
-            className="ghost danger"
-            onClick={() => onRemove(i)}
-          >
+          <button className="ghost danger" onClick={() => onRemove(i)}>
             Remover
           </button>
         )}
@@ -87,9 +108,9 @@ function Section({ s, i, onFile, onChange, onRemove }) {
             value={s.effect}
             onChange={(e) => onChange(i, 'effect', e.target.value)}
           >
-            {effects.map((x) => (
-              <option key={x[0]} value={x[0]}>
-                {x[1]}
+            {effects.map(([value, label]) => (
+              <option key={value} value={value}>
+                {label}
               </option>
             ))}
           </select>
@@ -102,7 +123,7 @@ function Section({ s, i, onFile, onChange, onRemove }) {
             min="4"
             max="20"
             value={s.speed}
-            onChange={(e) => onChange(i, 'speed', e.target.value)}
+            onChange={(e) => onChange(i, 'speed', Number(e.target.value))}
           />
         </label>
 
@@ -113,7 +134,7 @@ function Section({ s, i, onFile, onChange, onRemove }) {
             min="2"
             max="20"
             value={s.intensity}
-            onChange={(e) => onChange(i, 'intensity', e.target.value)}
+            onChange={(e) => onChange(i, 'intensity', Number(e.target.value))}
           />
         </label>
       </div>
@@ -136,6 +157,7 @@ function NormalAnimated({ s, i }) {
     );
 
     observer.observe(el);
+
     return () => observer.disconnect();
   }, []);
 
@@ -147,24 +169,28 @@ function NormalAnimated({ s, i }) {
     const update = () => {
       if (!ref.current) return;
 
-      const r = ref.current.getBoundingClientRect();
+      const rect = ref.current.getBoundingClientRect();
       const vh = window.innerHeight;
 
-      setProgress(
-        Math.max(0, Math.min(1, (vh - r.top) / (vh + r.height)))
+      const next = Math.max(
+        0,
+        Math.min(1, (vh - rect.top) / (vh + rect.height))
       );
+
+      setProgress(next);
     };
 
-    const scroll = () => {
+    const onScroll = () => {
       cancelAnimationFrame(frame);
       frame = requestAnimationFrame(update);
     };
 
     update();
-    window.addEventListener('scroll', scroll, { passive: true });
+
+    window.addEventListener('scroll', onScroll, { passive: true });
 
     return () => {
-      window.removeEventListener('scroll', scroll);
+      window.removeEventListener('scroll', onScroll);
       cancelAnimationFrame(frame);
     };
   }, [visible, s.effect]);
@@ -172,9 +198,7 @@ function NormalAnimated({ s, i }) {
   return (
     <section
       ref={ref}
-      className={`visual fx-${s.effect} ${
-        visible ? 'is-visible' : ''
-      }`}
+      className={`visual fx-${s.effect} ${visible ? 'is-visible' : ''}`}
       style={{
         '--speed': `${s.speed}s`,
         '--power': s.intensity / 100,
@@ -193,39 +217,47 @@ function NormalAnimated({ s, i }) {
   );
 }
 
-function LayerHero({ layers }) {
+function LayerHero({ layers, person, sign }) {
   return (
     <section className="visual layerHero">
       {layers.background ? (
-        <img
-          className="heroBackground"
-          src={layers.background}
-          alt=""
-        />
+        <img className="heroBackground" src={layers.background} alt="" />
+      ) : layers.original ? (
+        <img className="heroBackground" src={layers.original} alt="" />
       ) : (
         <div className="empty">
-          HERO EM CAMADAS
-          <small>Adicione fundo, personagem e placa</small>
+          HERO MOTION
+          <small>Adicione sua arte</small>
         </div>
       )}
 
       {layers.person && (
-        <div className="personMotion">
-          <img
-            className="heroPerson"
-            src={layers.person}
-            alt=""
-          />
+        <div
+          className="personPosition"
+          style={{
+            left: `${person.x}%`,
+            top: `${person.y}%`,
+            width: `${person.size}%`,
+          }}
+        >
+          <div className="personMotion">
+            <img className="heroPerson" src={layers.person} alt="" />
+          </div>
+        </div>
+      )}
 
-          {layers.sign && (
-            <div className="signMotion">
-              <img
-                className="heroSign"
-                src={layers.sign}
-                alt=""
-              />
-            </div>
-          )}
+      {layers.sign && (
+        <div
+          className="signPosition"
+          style={{
+            left: `${sign.x}%`,
+            top: `${sign.y}%`,
+            width: `${sign.size}%`,
+          }}
+        >
+          <div className="signMotion">
+            <img className="heroSign" src={layers.sign} alt="" />
+          </div>
         </div>
       )}
     </section>
@@ -246,9 +278,22 @@ export default function Page() {
   const [layerMode, setLayerMode] = useState(false);
 
   const [layers, setLayers] = useState({
+    original: '',
     background: '',
     person: '',
     sign: '',
+  });
+
+  const [person, setPerson] = useState({
+    x: 50,
+    y: 50,
+    size: 100,
+  });
+
+  const [sign, setSign] = useState({
+    x: 68,
+    y: 48,
+    size: 42,
   });
 
   const urls = useRef([]);
@@ -258,6 +303,15 @@ export default function Page() {
     [sections]
   );
 
+  const heroReady =
+    layerMode &&
+    Boolean(
+      layers.original ||
+        layers.background ||
+        layers.person ||
+        layers.sign
+    );
+
   useEffect(() => {
     return () => {
       urls.current.forEach((url) => URL.revokeObjectURL(url));
@@ -266,8 +320,10 @@ export default function Page() {
 
   function makeURL(file) {
     if (!file) return '';
+
     const url = URL.createObjectURL(file);
     urls.current.push(url);
+
     return url;
   }
 
@@ -286,46 +342,47 @@ export default function Page() {
     const url = makeURL(f);
 
     setSections((old) =>
-      old.map((s, n) =>
-        n === i ? { ...s, url } : s
-      )
+      old.map((s, n) => (n === i ? { ...s, url } : s))
     );
   }
 
   function change(i, key, value) {
     setSections((old) =>
-      old.map((s, n) =>
-        n === i ? { ...s, [key]: value } : s
-      )
+      old.map((s, n) => (n === i ? { ...s, [key]: value } : s))
     );
   }
 
   function remove(i) {
     setSections((old) =>
-      old.map((s, n) =>
-        n === i ? { ...s, url: '' } : s
-      )
+      old.map((s, n) => (n === i ? { ...s, url: '' } : s))
     );
   }
 
-  const heroReady =
-    layerMode &&
-    (layers.background || layers.person || layers.sign);
+  function resetMotion() {
+    setPerson({
+      x: 50,
+      y: 50,
+      size: 100,
+    });
+
+    setSign({
+      x: 68,
+      y: 48,
+      size: 42,
+    });
+  }
 
   if (preview) {
     return (
       <main className="previewPage">
         <div className="previewBar">
-          <button onClick={() => setPreview(false)}>
-            ← Editor
-          </button>
-
-          <span>Preview V3 • Motion Layers</span>
+          <button onClick={() => setPreview(false)}>← Editor</button>
+          <span>Preview V3.1 • Motion Layers</span>
         </div>
 
         <div className="phone">
           {heroReady ? (
-            <LayerHero layers={layers} />
+            <LayerHero layers={layers} person={person} sign={sign} />
           ) : (
             <NormalAnimated s={sections[0]} i={0} />
           )}
@@ -350,9 +407,7 @@ export default function Page() {
             LANDING <i>MOTION</i>
           </div>
 
-          <p>
-            Landing pages visuais com movimento por camadas.
-          </p>
+          <p>Landing pages visuais com movimento por camadas.</p>
         </div>
 
         <button
@@ -367,50 +422,171 @@ export default function Page() {
       <div className="layerPanel">
         <div className="layerTitle">
           <div>
-            <b>V3 • MOTION LAYERS</b>
-            <h2>Hero animada por camadas</h2>
+            <b>V3.1 • MOTION LAYERS</b>
+            <h2>Hero animada</h2>
             <p>
-              Separe fundo, personagem e texto/placa.
+              Use uma arte pronta e controle as camadas separadamente.
             </p>
           </div>
 
           <button
-            className={`modeButton ${
-              layerMode ? 'active' : ''
-            }`}
+            className={`modeButton ${layerMode ? 'active' : ''}`}
             onClick={() => setLayerMode(!layerMode)}
           >
-            {layerMode
-              ? '✓ Camadas ativadas'
-              : 'Ativar camadas'}
+            {layerMode ? '✓ Camadas ativadas' : 'Ativar camadas'}
           </button>
         </div>
 
         {layerMode && (
-          <div className="layerGrid">
-            <Upload
-              label="Fundo"
-              url={layers.background}
-              onFile={(f) => setLayer('background', f)}
-            />
+          <>
+            <div className="autoLayerBox">
+              <div>
+                <b>✨ SEPARAÇÃO AUTOMÁTICA</b>
+                <h3>Envie a arte completa</h3>
+                <p>
+                  Essa será a entrada para a separação automática em
+                  fundo, personagem e elementos.
+                </p>
+              </div>
 
-            <Upload
-              label="Personagem"
-              url={layers.person}
-              onFile={(f) => setLayer('person', f)}
-            />
+              <Upload
+                label="Arte completa 9:16"
+                url={layers.original}
+                transparent={false}
+                onFile={(f) => setLayer('original', f)}
+              />
 
-            <Upload
-              label="Texto / placa"
-              url={layers.sign}
-              onFile={(f) => setLayer('sign', f)}
-            />
-          </div>
+              <button
+                className="separateButton"
+                disabled={!layers.original}
+                onClick={() =>
+                  alert(
+                    'Arte recebida! A conexão com a separação automática será adicionada no próximo passo.'
+                  )
+                }
+              >
+                ✨ Separar arte automaticamente
+              </button>
+            </div>
+
+            <div className="layerDivider">
+              <span>CAMADAS</span>
+            </div>
+
+            <div className="layerGrid">
+              <Upload
+                label="Fundo"
+                url={layers.background}
+                transparent={false}
+                onFile={(f) => setLayer('background', f)}
+              />
+
+              <Upload
+                label="Personagem"
+                url={layers.person}
+                onFile={(f) => setLayer('person', f)}
+              />
+
+              <Upload
+                label="Texto / placa"
+                url={layers.sign}
+                onFile={(f) => setLayer('sign', f)}
+              />
+            </div>
+
+            {(layers.person || layers.sign) && (
+              <div className="motionEditor">
+                <div className="motionEditorTitle">
+                  <div>
+                    <b>EDITOR DE MOVIMENTO</b>
+                    <h3>Posição das camadas</h3>
+                  </div>
+
+                  <button className="ghost" onClick={resetMotion}>
+                    Restaurar
+                  </button>
+                </div>
+
+                {layers.person && (
+                  <div className="motionGroup">
+                    <strong>👤 Personagem</strong>
+
+                    <Slider
+                      title="Horizontal"
+                      value={person.x}
+                      min={0}
+                      max={100}
+                      onChange={(x) =>
+                        setPerson((old) => ({ ...old, x }))
+                      }
+                    />
+
+                    <Slider
+                      title="Vertical"
+                      value={person.y}
+                      min={0}
+                      max={100}
+                      onChange={(y) =>
+                        setPerson((old) => ({ ...old, y }))
+                      }
+                    />
+
+                    <Slider
+                      title="Tamanho"
+                      value={person.size}
+                      min={30}
+                      max={180}
+                      onChange={(size) =>
+                        setPerson((old) => ({ ...old, size }))
+                      }
+                    />
+                  </div>
+                )}
+
+                {layers.sign && (
+                  <div className="motionGroup">
+                    <strong>💬 Texto / placa</strong>
+
+                    <Slider
+                      title="Horizontal"
+                      value={sign.x}
+                      min={0}
+                      max={100}
+                      onChange={(x) =>
+                        setSign((old) => ({ ...old, x }))
+                      }
+                    />
+
+                    <Slider
+                      title="Vertical"
+                      value={sign.y}
+                      min={0}
+                      max={100}
+                      onChange={(y) =>
+                        setSign((old) => ({ ...old, y }))
+                      }
+                    />
+
+                    <Slider
+                      title="Tamanho"
+                      value={sign.size}
+                      min={10}
+                      max={100}
+                      onChange={(size) =>
+                        setSign((old) => ({ ...old, size }))
+                      }
+                    />
+                  </div>
+                )}
+              </div>
+            )}
+          </>
         )}
       </div>
 
       <div className="status">
         <span>{filled}/8 artes adicionadas</span>
+
         <div>
           <i style={{ width: `${(filled / 8) * 100}%` }} />
         </div>
@@ -430,8 +606,8 @@ export default function Page() {
       </section>
 
       <footer>
-        V3 • Motion Layers • Fundo + personagem + elemento
+        V3.1 • Motion Layers • Editor de posição e escala
       </footer>
     </main>
   );
-                  }
+              }
