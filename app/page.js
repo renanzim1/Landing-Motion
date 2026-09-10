@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useMemo, useRef, useState } from 'react';
+import { removerFundoGratis } from './BackgroundRemovalProvider';
 
 const effects = [
   ['none', 'Sem animação'],
@@ -402,10 +403,6 @@ export default function Page() {
     setSeparateSuccess,
   ] = useState(false);
 
-  /*
-   * CORREÇÃO PRINCIPAL:
-   * guardamos o File real selecionado pelo usuário.
-   */
   const [
     originalFile,
     setOriginalFile,
@@ -466,12 +463,6 @@ export default function Page() {
     return url;
   }
 
-  /*
-   * Upload especial da arte completa.
-   * Salva:
-   * 1. URL para mostrar a prévia.
-   * 2. File real para enviar à API.
-   */
   function setOriginal(file) {
     if (!file) return;
 
@@ -561,57 +552,17 @@ export default function Page() {
       setSeparateError('');
       setSeparateSuccess(false);
 
-      const formData =
-        new FormData();
-
-      /*
-       * Agora enviamos diretamente o File
-       * selecionado no celular.
-       */
-      formData.append(
-        'image',
-        originalFile,
-        originalFile.name ||
-          'landing-original.png'
-      );
-
-      const response = await fetch(
-        '/api/separate',
-        {
-          method: 'POST',
-          body: formData,
-        }
-      );
-
-      if (!response.ok) {
-        let message =
-          'Não foi possível separar a personagem.';
-
-        try {
-          const data =
-            await response.json();
-
-          if (data?.error) {
-            message = data.error;
-          }
-
-          if (data?.status) {
-            message +=
-              ` Código: ${data.status}.`;
-          }
-        } catch {
-          // Mantém a mensagem padrão.
-        }
-
-        throw new Error(message);
-      }
-
       const personBlob =
-        await response.blob();
+        await removerFundoGratis(
+          originalFile
+        );
 
-      if (!personBlob.size) {
+      if (
+        !personBlob ||
+        !personBlob.size
+      ) {
         throw new Error(
-          'A API retornou uma imagem vazia.'
+          'A remoção retornou uma imagem vazia.'
         );
       }
 
@@ -1053,4 +1004,4 @@ export default function Page() {
       </footer>
     </main>
   );
-                            }
+              }
