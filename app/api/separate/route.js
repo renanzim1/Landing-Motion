@@ -7,44 +7,34 @@ export async function POST(request) {
     if (!apiKey) {
       return Response.json(
         {
-          error:
-            'PHOTOROOM_API_KEY não configurada.',
+          error: 'PHOTOROOM_API_KEY não configurada.',
         },
         { status: 500 }
       );
     }
 
-    const incoming =
-      await request.formData();
+    const incoming = await request.formData();
+    const image = incoming.get('image');
 
-    const image =
-      incoming.get('image');
-
-    if (
-      !image ||
-      typeof image === 'string'
-    ) {
+    if (!image || typeof image === 'string') {
       return Response.json(
         {
-          error:
-            'Nenhuma imagem foi enviada.',
+          error: 'Nenhuma imagem foi enviada.',
         },
         { status: 400 }
       );
     }
 
-    const photoRoomForm =
-      new FormData();
+    const photoRoomForm = new FormData();
 
     photoRoomForm.append(
       'imageFile',
       image,
-      image.name ||
-        'landing-image.png'
+      image.name || 'landing-image.png'
     );
 
     /*
-     * Remove o fundo.
+     * Recorte com fundo transparente.
      */
     photoRoomForm.append(
       'removeBackground',
@@ -52,26 +42,33 @@ export async function POST(request) {
     );
 
     /*
-     * Tentativa de manter somente
-     * o objeto/pessoa principal.
+     * SEGMENTAÇÃO DIRECIONADA
+     *
+     * Dizemos explicitamente o que
+     * queremos manter: somente a pessoa.
      */
     photoRoomForm.append(
       'segmentation.mode',
       'keepSalientObject'
     );
 
-    /*
-     * Tenta excluir textos e
-     * elementos gráficos.
-     */
     photoRoomForm.append(
-      'segmentation.negativePrompt',
-      'text, typography, button, logo, graphic'
+      'segmentation.prompt',
+      'person, woman'
     );
 
     /*
-     * Mantém a composição no
-     * tamanho da imagem original.
+     * Elementos que NÃO queremos
+     * junto da personagem.
+     */
+    photoRoomForm.append(
+      'segmentation.negativePrompt',
+      'text, typography, letters, words, logo, button, graphic design, background'
+    );
+
+    /*
+     * Mantém tamanho e posição
+     * correspondentes à arte original.
      */
     photoRoomForm.append(
       'referenceBox',
@@ -84,44 +81,35 @@ export async function POST(request) {
     );
 
     /*
-     * Precisamos de PNG para
-     * preservar transparência.
+     * PNG mantém transparência.
      */
     photoRoomForm.append(
       'export.format',
       'png'
     );
 
-    const response =
-      await fetch(
-        'https://image-api.photoroom.com/v2/edit',
-        {
-          method: 'POST',
+    const response = await fetch(
+      'https://image-api.photoroom.com/v2/edit',
+      {
+        method: 'POST',
 
-          headers: {
-            'x-api-key': apiKey,
-          },
+        headers: {
+          'x-api-key': apiKey,
+        },
 
-          body: photoRoomForm,
+        body: photoRoomForm,
 
-          cache: 'no-store',
-        }
-      );
+        cache: 'no-store',
+      }
+    );
 
     /*
-     * IMPORTANTE:
-     *
-     * Se a Photoroom recusar algum
-     * parâmetro, agora devolvemos
-     * a mensagem ORIGINAL dela
-     * para a Landing Motion.
-     *
-     * Assim conseguimos descobrir
-     * exatamente o motivo do 400.
+     * Se houver outro erro,
+     * continuamos mostrando a mensagem
+     * original da Photoroom na tela.
      */
     if (!response.ok) {
-      const message =
-        await response.text();
+      const message = await response.text();
 
       console.error(
         'Photoroom segmentation error:',
@@ -131,8 +119,7 @@ export async function POST(request) {
 
       return Response.json(
         {
-          error:
-            `Photoroom: ${message}`,
+          error: `Photoroom: ${message}`,
           status: response.status,
         },
         {
@@ -141,27 +128,25 @@ export async function POST(request) {
       );
     }
 
-    /*
-     * Se funcionou, recebe o PNG
-     * transparente da Photoroom.
-     */
-    const result =
-      await response.arrayBuffer();
+    const result = await response.arrayBuffer();
 
-    return new Response(
-      result,
-      {
-        status: 200,
-
-        headers: {
-          'Content-Type':
-            'image/png',
-
-          'Cache-Control':
-            'no-store',
+    if (!result.byteLength) {
+      return Response.json(
+        {
+          error: 'A Photoroom retornou uma imagem vazia.',
         },
-      }
-    );
+        { status: 502 }
+      );
+    }
+
+    return new Response(result, {
+      status: 200,
+
+      headers: {
+        'Content-Type': 'image/png',
+        'Cache-Control': 'no-store',
+      },
+    });
   } catch (error) {
     console.error(
       'Separate API error:',
@@ -170,8 +155,7 @@ export async function POST(request) {
 
     return Response.json(
       {
-        error:
-          'Erro interno ao separar a personagem.',
+        error: 'Erro interno ao separar a personagem.',
       },
       {
         status: 500,
