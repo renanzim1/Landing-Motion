@@ -1,7 +1,11 @@
 'use client';
 
-import { useEffect, useMemo, useRef, useState } from 'react';
-import { removerFundoGratis } from './BackgroundRemovalProvider';
+import {
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 
 const effects = [
   ['none', 'Sem animação'],
@@ -31,12 +35,18 @@ function Upload({
   transparent = true,
 }) {
   return (
-    <label className={'layerUpload ' + (url ? 'hasLayer' : '')}>
+    <label
+      className={
+        'layerUpload ' +
+        (url ? 'hasLayer' : '')
+      }
+    >
       <input
         type="file"
         accept="image/png,image/jpeg,image/webp"
         onChange={(e) => {
-          const selected = e.target.files?.[0];
+          const selected =
+            e.target.files?.[0];
 
           if (selected) {
             onFile(selected);
@@ -85,7 +95,11 @@ function Slider({
         min={min}
         max={max}
         value={value}
-        onChange={(e) => onChange(Number(e.target.value))}
+        onChange={(e) =>
+          onChange(
+            Number(e.target.value)
+          )
+        }
       />
     </label>
   );
@@ -102,26 +116,40 @@ function Section({
     <div className="card">
       <div className="cardTop">
         <div>
-          <b>{String(i + 1).padStart(2, '0')}</b>
+          <b>
+            {String(i + 1).padStart(
+              2,
+              '0'
+            )}
+          </b>
+
           <span>{names[i]}</span>
         </div>
 
         {s.url && (
           <button
             className="ghost danger"
-            onClick={() => onRemove(i)}
+            onClick={() =>
+              onRemove(i)
+            }
           >
             Remover
           </button>
         )}
       </div>
 
-      <label className={'drop ' + (s.url ? 'has' : '')}>
+      <label
+        className={
+          'drop ' +
+          (s.url ? 'has' : '')
+        }
+      >
         <input
           type="file"
           accept="image/png,image/jpeg,image/webp"
           onChange={(e) => {
-            const selected = e.target.files?.[0];
+            const selected =
+              e.target.files?.[0];
 
             if (selected) {
               onFile(i, selected);
@@ -130,11 +158,19 @@ function Section({
         />
 
         {s.url ? (
-          <img src={s.url} alt="prévia" />
+          <img
+            src={s.url}
+            alt="prévia"
+          />
         ) : (
           <>
-            <strong>＋ Selecionar arte 9:16</strong>
-            <small>PNG, JPG ou WebP</small>
+            <strong>
+              ＋ Selecionar arte 9:16
+            </strong>
+
+            <small>
+              PNG, JPG ou WebP
+            </small>
           </>
         )}
       </label>
@@ -146,19 +182,29 @@ function Section({
           <select
             value={s.effect}
             onChange={(e) =>
-              onChange(i, 'effect', e.target.value)
+              onChange(
+                i,
+                'effect',
+                e.target.value
+              )
             }
           >
-            {effects.map(([value, label]) => (
-              <option key={value} value={value}>
-                {label}
-              </option>
-            ))}
+            {effects.map(
+              ([value, label]) => (
+                <option
+                  key={value}
+                  value={value}
+                >
+                  {label}
+                </option>
+              )
+            )}
           </select>
         </label>
 
         <label>
-          Velocidade <span>{s.speed}s</span>
+          Velocidade{' '}
+          <span>{s.speed}s</span>
 
           <input
             type="range"
@@ -169,14 +215,19 @@ function Section({
               onChange(
                 i,
                 'speed',
-                Number(e.target.value)
+                Number(
+                  e.target.value
+                )
               )
             }
           />
         </label>
 
         <label>
-          Intensidade <span>{s.intensity}%</span>
+          Intensidade{' '}
+          <span>
+            {s.intensity}%
+          </span>
 
           <input
             type="range"
@@ -187,7 +238,9 @@ function Section({
               onChange(
                 i,
                 'intensity',
-                Number(e.target.value)
+                Number(
+                  e.target.value
+                )
               )
             }
           />
@@ -197,33 +250,46 @@ function Section({
   );
 }
 
-function NormalAnimated({ s, i }) {
+function NormalAnimated({
+  s,
+  i,
+}) {
   const ref = useRef(null);
 
-  const [visible, setVisible] = useState(false);
-  const [progress, setProgress] = useState(0);
+  const [visible, setVisible] =
+    useState(false);
+
+  const [progress, setProgress] =
+    useState(0);
 
   useEffect(() => {
     const el = ref.current;
 
     if (!el) return;
 
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        setVisible(entry.isIntersecting);
-      },
-      {
-        threshold: 0.12,
-      }
-    );
+    const observer =
+      new IntersectionObserver(
+        ([entry]) => {
+          setVisible(
+            entry.isIntersecting
+          );
+        },
+        {
+          threshold: 0.12,
+        }
+      );
 
     observer.observe(el);
 
-    return () => observer.disconnect();
+    return () =>
+      observer.disconnect();
   }, []);
 
   useEffect(() => {
-    if (!visible || s.effect !== 'parallax') {
+    if (
+      !visible ||
+      s.effect !== 'parallax'
+    ) {
       return;
     }
 
@@ -235,7 +301,8 @@ function NormalAnimated({ s, i }) {
       const rect =
         ref.current.getBoundingClientRect();
 
-      const vh = window.innerHeight;
+      const vh =
+        window.innerHeight;
 
       const next = Math.max(
         0,
@@ -250,10 +317,14 @@ function NormalAnimated({ s, i }) {
     };
 
     const onScroll = () => {
-      cancelAnimationFrame(frame);
+      cancelAnimationFrame(
+        frame
+      );
 
       frame =
-        requestAnimationFrame(update);
+        requestAnimationFrame(
+          update
+        );
     };
 
     update();
@@ -270,7 +341,9 @@ function NormalAnimated({ s, i }) {
         onScroll
       );
 
-      cancelAnimationFrame(frame);
+      cancelAnimationFrame(
+        frame
+      );
     };
   }, [visible, s.effect]);
 
@@ -279,11 +352,14 @@ function NormalAnimated({ s, i }) {
       ref={ref}
       className={
         `visual fx-${s.effect} ` +
-        (visible ? 'is-visible' : '')
+        (visible
+          ? 'is-visible'
+          : '')
       }
       style={{
         '--speed': `${s.speed}s`,
-        '--power': s.intensity / 100,
+        '--power':
+          s.intensity / 100,
         '--scroll': progress,
       }}
     >
@@ -295,7 +371,10 @@ function NormalAnimated({ s, i }) {
       ) : (
         <div className="empty">
           SEÇÃO {i + 1}
-          <small>{names[i]}</small>
+
+          <small>
+            {names[i]}
+          </small>
         </div>
       )}
     </section>
@@ -306,13 +385,26 @@ function LayerHero({
   layers,
   person,
   sign,
+  generatedMotion,
+  replayKey,
 }) {
+  const handX =
+    generatedMotion.hand ===
+    'left'
+      ? person.x - 14
+      : person.x + 14;
+
+  const handY =
+    person.y + 6;
+
   return (
     <section className="visual layerHero">
       {layers.background ? (
         <img
           className="heroBackground"
-          src={layers.background}
+          src={
+            layers.background
+          }
           alt=""
         />
       ) : layers.original ? (
@@ -324,7 +416,10 @@ function LayerHero({
       ) : (
         <div className="empty">
           HERO MOTION
-          <small>Adicione sua arte</small>
+
+          <small>
+            Adicione o fundo
+          </small>
         </div>
       )}
 
@@ -337,7 +432,12 @@ function LayerHero({
             width: `${person.size}%`,
           }}
         >
-          <div className="personMotion">
+          <div
+            className={
+              generatedMotion.personClass ||
+              'personMotion'
+            }
+          >
             <img
               className="heroPerson"
               src={layers.person}
@@ -349,11 +449,31 @@ function LayerHero({
 
       {layers.sign && (
         <div
-          className="signPosition"
+          key={replayKey}
+          className={
+            `signPosition ` +
+            (generatedMotion.className ||
+              '')
+          }
           style={{
             left: `${sign.x}%`,
             top: `${sign.y}%`,
             width: `${sign.size}%`,
+
+            '--final-x':
+              `${sign.x}%`,
+
+            '--final-y':
+              `${sign.y}%`,
+
+            '--hand-x':
+              `${handX}%`,
+
+            '--hand-y':
+              `${handY}%`,
+
+            '--motion-duration':
+              `${generatedMotion.duration}s`,
           }}
         >
           <div className="signMotion">
@@ -381,57 +501,84 @@ export default function Page() {
       })
     );
 
-  const [sections, setSections] =
-    useState(fresh);
-
-  const [preview, setPreview] =
-    useState(false);
-
-  const [layerMode, setLayerMode] =
-    useState(false);
-
-  const [separating, setSeparating] =
-    useState(false);
+  const [
+    sections,
+    setSections,
+  ] = useState(fresh);
 
   const [
-    separateError,
-    setSeparateError,
-  ] = useState('');
-
-  const [
-    separateSuccess,
-    setSeparateSuccess,
+    preview,
+    setPreview,
   ] = useState(false);
 
   const [
-    originalFile,
-    setOriginalFile,
-  ] = useState(null);
+    layerMode,
+    setLayerMode,
+  ] = useState(false);
 
-  const [layers, setLayers] = useState({
+  const [
+    layers,
+    setLayers,
+  ] = useState({
     original: '',
     background: '',
     person: '',
     sign: '',
   });
 
-  const [person, setPerson] = useState({
+  const [
+    person,
+    setPerson,
+  ] = useState({
     x: 50,
     y: 50,
     size: 100,
   });
 
-  const [sign, setSign] = useState({
+  const [
+    sign,
+    setSign,
+  ] = useState({
     x: 68,
     y: 48,
     size: 42,
   });
 
-  const urls = useRef([]);
+  const [
+    motionPrompt,
+    setMotionPrompt,
+  ] = useState('');
+
+  const [
+    motionMessage,
+    setMotionMessage,
+  ] = useState('');
+
+  const [
+    replayKey,
+    setReplayKey,
+  ] = useState(0);
+
+  const [
+    generatedMotion,
+    setGeneratedMotion,
+  ] = useState({
+    type: 'none',
+    className: '',
+    personClass:
+      'personMotion',
+    hand: 'right',
+    duration: 4,
+  });
+
+  const urls =
+    useRef([]);
 
   const filled = useMemo(
     () =>
-      sections.filter((s) => s.url).length,
+      sections.filter(
+        (s) => s.url
+      ).length,
     [sections]
   );
 
@@ -446,9 +593,13 @@ export default function Page() {
 
   useEffect(() => {
     return () => {
-      urls.current.forEach((url) => {
-        URL.revokeObjectURL(url);
-      });
+      urls.current.forEach(
+        (url) => {
+          URL.revokeObjectURL(
+            url
+          );
+        }
+      );
     };
   }, []);
 
@@ -456,34 +607,23 @@ export default function Page() {
     if (!file) return '';
 
     const url =
-      URL.createObjectURL(file);
+      URL.createObjectURL(
+        file
+      );
 
     urls.current.push(url);
 
     return url;
   }
 
-  function setOriginal(file) {
+  function setLayer(
+    name,
+    file
+  ) {
     if (!file) return;
 
-    setOriginalFile(file);
-
-    const url = makeURL(file);
-
-    setLayers((old) => ({
-      ...old,
-      original: url,
-      person: '',
-    }));
-
-    setSeparateError('');
-    setSeparateSuccess(false);
-  }
-
-  function setLayer(name, file) {
-    if (!file) return;
-
-    const url = makeURL(file);
+    const url =
+      makeURL(file);
 
     setLayers((old) => ({
       ...old,
@@ -494,7 +634,8 @@ export default function Page() {
   function file(i, f) {
     if (!f) return;
 
-    const url = makeURL(f);
+    const url =
+      makeURL(f);
 
     setSections((old) =>
       old.map((s, n) =>
@@ -538,66 +679,227 @@ export default function Page() {
     );
   }
 
-  async function separateImage() {
-    if (!originalFile) {
-      setSeparateError(
-        'Primeiro envie a arte completa.'
+  function normalize(text) {
+    return text
+      .toLowerCase()
+      .normalize('NFD')
+      .replace(
+        /[\u0300-\u036f]/g,
+        ''
+      );
+  }
+
+  function generateMotion() {
+    const text =
+      normalize(
+        motionPrompt
+      );
+
+    if (!text.trim()) {
+      setMotionMessage(
+        'Escreva o movimento que você quer.'
       );
 
       return;
     }
 
-    try {
-      setSeparating(true);
-      setSeparateError('');
-      setSeparateSuccess(false);
+    let next = {
+      type: 'none',
+      className: '',
+      personClass:
+        'personMotion',
+      hand: 'right',
+      duration: 4,
+    };
 
-      const personBlob =
-        await removerFundoGratis(
-          originalFile
-        );
-
-      if (
-        !personBlob ||
-        !personBlob.size
-      ) {
-        throw new Error(
-          'A remoção retornou uma imagem vazia.'
-        );
-      }
-
-      const personURL =
-        URL.createObjectURL(
-          personBlob
-        );
-
-      urls.current.push(personURL);
-
-      setLayers((old) => ({
-        ...old,
-        person: personURL,
-      }));
-
-      setPerson({
-        x: 50,
-        y: 50,
-        size: 100,
-      });
-
-      setSeparateSuccess(true);
-    } catch (error) {
-      console.error(
-        'Erro ao separar:',
-        error
-      );
-
-      setSeparateError(
-        error?.message ||
-          'Erro ao separar a personagem.'
-      );
-    } finally {
-      setSeparating(false);
+    if (
+      text.includes(
+        'mao esquerda'
+      )
+    ) {
+      next.hand = 'left';
     }
+
+    if (
+      text.includes(
+        'mao direita'
+      )
+    ) {
+      next.hand = 'right';
+    }
+
+    if (
+      text.includes('pega') ||
+      text.includes('segura') ||
+      text.includes('mao') ||
+      text.includes(
+        'coloca no lugar'
+      )
+    ) {
+      next = {
+        ...next,
+        type: 'hold',
+        className:
+          'motionHoldToPlace',
+        personClass:
+          'personMotionAlive',
+        duration: 4.2,
+      };
+
+      setMotionMessage(
+        '✓ Movimento criado: objeto vai para a mão, fica segurado e depois vai para a posição final.'
+      );
+    } else if (
+      text.includes(
+        'entra pela esquerda'
+      ) ||
+      text.includes(
+        'vem da esquerda'
+      )
+    ) {
+      next = {
+        ...next,
+        type: 'left',
+        className:
+          'motionEnterLeft',
+        duration: 2.2,
+      };
+
+      setMotionMessage(
+        '✓ Movimento criado: entrada pela esquerda.'
+      );
+    } else if (
+      text.includes(
+        'entra pela direita'
+      ) ||
+      text.includes(
+        'vem da direita'
+      )
+    ) {
+      next = {
+        ...next,
+        type: 'right',
+        className:
+          'motionEnterRight',
+        duration: 2.2,
+      };
+
+      setMotionMessage(
+        '✓ Movimento criado: entrada pela direita.'
+      );
+    } else if (
+      text.includes('cai') ||
+      text.includes(
+        'cair'
+      ) ||
+      text.includes(
+        'vem de cima'
+      )
+    ) {
+      next = {
+        ...next,
+        type: 'fall',
+        className:
+          'motionFall',
+        duration: 2.3,
+      };
+
+      setMotionMessage(
+        '✓ Movimento criado: objeto cai e encaixa.'
+      );
+    } else if (
+      text.includes('sobe') ||
+      text.includes(
+        'vem de baixo'
+      )
+    ) {
+      next = {
+        ...next,
+        type: 'rise',
+        className:
+          'motionRise',
+        duration: 2.3,
+      };
+
+      setMotionMessage(
+        '✓ Movimento criado: objeto sobe e encaixa.'
+      );
+    } else if (
+      text.includes('gira') ||
+      text.includes(
+        'rodopia'
+      )
+    ) {
+      next = {
+        ...next,
+        type: 'spin',
+        className:
+          'motionSpin',
+        duration: 2.4,
+      };
+
+      setMotionMessage(
+        '✓ Movimento criado: giro com encaixe.'
+      );
+    } else if (
+      text.includes(
+        'flutua'
+      ) ||
+      text.includes(
+        'flutuando'
+      )
+    ) {
+      next = {
+        ...next,
+        type: 'float',
+        className:
+          'motionFloatPrompt',
+        duration: 4,
+      };
+
+      setMotionMessage(
+        '✓ Movimento criado: flutuação contínua.'
+      );
+    } else if (
+      text.includes(
+        'aparece'
+      ) ||
+      text.includes(
+        'surge'
+      )
+    ) {
+      next = {
+        ...next,
+        type: 'appear',
+        className:
+          'motionAppear',
+        duration: 1.8,
+      };
+
+      setMotionMessage(
+        '✓ Movimento criado: aparição suave.'
+      );
+    } else {
+      next = {
+        ...next,
+        type: 'soft',
+        className:
+          'motionSoft',
+        duration: 3,
+      };
+
+      setMotionMessage(
+        '✓ Interpretei como um movimento suave.'
+      );
+    }
+
+    setGeneratedMotion(
+      next
+    );
+
+    setReplayKey(
+      (old) => old + 1
+    );
   }
 
   function resetMotion() {
@@ -612,6 +914,19 @@ export default function Page() {
       y: 48,
       size: 42,
     });
+
+    setGeneratedMotion({
+      type: 'none',
+      className: '',
+      personClass:
+        'personMotion',
+      hand: 'right',
+      duration: 4,
+    });
+
+    setMotionPrompt('');
+
+    setMotionMessage('');
   }
 
   if (preview) {
@@ -627,7 +942,8 @@ export default function Page() {
           </button>
 
           <span>
-            Preview V3.3 • Motion Layers
+            Preview • Prompt
+            Motion
           </span>
         </div>
 
@@ -637,6 +953,12 @@ export default function Page() {
               layers={layers}
               person={person}
               sign={sign}
+              generatedMotion={
+                generatedMotion
+              }
+              replayKey={
+                replayKey
+              }
             />
           ) : (
             <NormalAnimated
@@ -647,13 +969,22 @@ export default function Page() {
 
           {sections
             .slice(1)
-            .map((s, index) => (
-              <NormalAnimated
-                key={index + 1}
-                s={s}
-                i={index + 1}
-              />
-            ))}
+            .map(
+              (
+                s,
+                index
+              ) => (
+                <NormalAnimated
+                  key={
+                    index + 1
+                  }
+                  s={s}
+                  i={
+                    index + 1
+                  }
+                />
+              )
+            )}
         </div>
       </main>
     );
@@ -664,19 +995,22 @@ export default function Page() {
       <header>
         <div>
           <div className="brand">
-            LANDING <i>MOTION</i>
+            LANDING{' '}
+            <i>MOTION</i>
           </div>
 
           <p>
-            Landing pages visuais com
-            movimento por camadas.
+            Crie movimentos
+            usando comandos em
+            texto.
           </p>
         </div>
 
         <button
           className="primary"
           disabled={
-            !filled && !heroReady
+            !filled &&
+            !heroReady
           }
           onClick={() =>
             setPreview(true)
@@ -690,14 +1024,17 @@ export default function Page() {
         <div className="layerTitle">
           <div>
             <b>
-              V3.3 • MOTION LAYERS
+              PROMPT MOTION
             </b>
 
-            <h2>Hero animada</h2>
+            <h2>
+              Hero animada
+            </h2>
 
             <p>
-              Envie sua arte e separe
-              automaticamente a personagem.
+              Suba as camadas em
+              PNG e descreva o
+              movimento.
             </p>
           </div>
 
@@ -722,77 +1059,10 @@ export default function Page() {
 
         {layerMode && (
           <>
-            <div className="autoLayerBox">
-              <div>
-                <b>
-                  ✨ SEPARAÇÃO AUTOMÁTICA
-                </b>
-
-                <h3>
-                  Envie a arte completa
-                </h3>
-
-                <p>
-                  A Landing Motion vai
-                  recortar automaticamente
-                  a personagem para criar
-                  uma camada transparente.
-                </p>
-              </div>
-
-              <Upload
-                label="Arte completa 9:16"
-                url={layers.original}
-                transparent={false}
-                onFile={setOriginal}
-              />
-
-              <button
-                className="separateButton"
-                disabled={
-                  !originalFile ||
-                  separating
-                }
-                onClick={
-                  separateImage
-                }
-              >
-                {separating
-                  ? '⏳ Separando personagem...'
-                  : '✨ Separar arte automaticamente'}
-              </button>
-
-              {separateSuccess && (
-                <p
-                  style={{
-                    color: '#79d98c',
-                    marginTop: '10px',
-                    marginBottom: 0,
-                    fontSize: '12px',
-                    fontWeight: 700,
-                  }}
-                >
-                  ✓ Personagem separada
-                  com sucesso.
-                </p>
-              )}
-
-              {separateError && (
-                <p
-                  style={{
-                    color: '#ff7b7b',
-                    marginTop: '10px',
-                    marginBottom: 0,
-                    fontSize: '12px',
-                  }}
-                >
-                  {separateError}
-                </p>
-              )}
-            </div>
-
             <div className="layerDivider">
-              <span>CAMADAS</span>
+              <span>
+                CAMADAS
+              </span>
             </div>
 
             <div className="layerGrid">
@@ -801,7 +1071,9 @@ export default function Page() {
                 url={
                   layers.background
                 }
-                transparent={false}
+                transparent={
+                  false
+                }
                 onFile={(f) =>
                   setLayer(
                     'background',
@@ -812,7 +1084,9 @@ export default function Page() {
 
               <Upload
                 label="Personagem"
-                url={layers.person}
+                url={
+                  layers.person
+                }
                 onFile={(f) =>
                   setLayer(
                     'person',
@@ -822,8 +1096,10 @@ export default function Page() {
               />
 
               <Upload
-                label="Texto / placa"
-                url={layers.sign}
+                label="Texto / objeto"
+                url={
+                  layers.sign
+                }
                 onFile={(f) =>
                   setLayer(
                     'sign',
@@ -833,175 +1109,258 @@ export default function Page() {
               />
             </div>
 
-            {(layers.person ||
-              layers.sign) && (
-              <div className="motionEditor">
-                <div className="motionEditorTitle">
-                  <div>
-                    <b>
-                      EDITOR DE MOVIMENTO
-                    </b>
+            <div className="promptMotionBox">
+              <b>
+                ✨ DESCREVA O
+                MOVIMENTO
+              </b>
 
-                    <h3>
-                      Posição das camadas
-                    </h3>
-                  </div>
+              <h3>
+                O que deve
+                acontecer?
+              </h3>
 
-                  <button
-                    className="ghost"
-                    onClick={
-                      resetMotion
-                    }
-                  >
-                    Restaurar
-                  </button>
+              <textarea
+                value={
+                  motionPrompt
+                }
+                onChange={(e) =>
+                  setMotionPrompt(
+                    e.target.value
+                  )
+                }
+                placeholder="Exemplo: Ela pega o texto na mão direita, segura por um instante e coloca no lugar."
+              />
+
+              <button
+                className="generateMotionButton"
+                disabled={
+                  !motionPrompt.trim() ||
+                  !layers.sign
+                }
+                onClick={
+                  generateMotion
+                }
+              >
+                ✨ Gerar movimento
+              </button>
+
+              {motionMessage && (
+                <p className="motionResult">
+                  {
+                    motionMessage
+                  }
+                </p>
+              )}
+
+              {generatedMotion.type !==
+                'none' && (
+                <button
+                  className="replayButton"
+                  onClick={() =>
+                    setReplayKey(
+                      (old) =>
+                        old + 1
+                    )
+                  }
+                >
+                  ↻ Repetir
+                  animação
+                </button>
+              )}
+            </div>
+
+            <div className="motionEditor">
+              <div className="motionEditorTitle">
+                <div>
+                  <b>
+                    AJUSTE OPCIONAL
+                  </b>
+
+                  <h3>
+                    Posição final
+                  </h3>
                 </div>
 
-                {layers.person && (
-                  <div className="motionGroup">
-                    <strong>
-                      👤 Personagem
-                    </strong>
-
-                    <Slider
-                      title="Horizontal"
-                      value={person.x}
-                      min={0}
-                      max={100}
-                      onChange={(x) =>
-                        setPerson(
-                          (old) => ({
-                            ...old,
-                            x,
-                          })
-                        )
-                      }
-                    />
-
-                    <Slider
-                      title="Vertical"
-                      value={person.y}
-                      min={0}
-                      max={100}
-                      onChange={(y) =>
-                        setPerson(
-                          (old) => ({
-                            ...old,
-                            y,
-                          })
-                        )
-                      }
-                    />
-
-                    <Slider
-                      title="Tamanho"
-                      value={
-                        person.size
-                      }
-                      min={30}
-                      max={180}
-                      onChange={(size) =>
-                        setPerson(
-                          (old) => ({
-                            ...old,
-                            size,
-                          })
-                        )
-                      }
-                    />
-                  </div>
-                )}
-
-                {layers.sign && (
-                  <div className="motionGroup">
-                    <strong>
-                      💬 Texto / placa
-                    </strong>
-
-                    <Slider
-                      title="Horizontal"
-                      value={sign.x}
-                      min={0}
-                      max={100}
-                      onChange={(x) =>
-                        setSign(
-                          (old) => ({
-                            ...old,
-                            x,
-                          })
-                        )
-                      }
-                    />
-
-                    <Slider
-                      title="Vertical"
-                      value={sign.y}
-                      min={0}
-                      max={100}
-                      onChange={(y) =>
-                        setSign(
-                          (old) => ({
-                            ...old,
-                            y,
-                          })
-                        )
-                      }
-                    />
-
-                    <Slider
-                      title="Tamanho"
-                      value={sign.size}
-                      min={10}
-                      max={100}
-                      onChange={(size) =>
-                        setSign(
-                          (old) => ({
-                            ...old,
-                            size,
-                          })
-                        )
-                      }
-                    />
-                  </div>
-                )}
+                <button
+                  className="ghost"
+                  onClick={
+                    resetMotion
+                  }
+                >
+                  Restaurar
+                </button>
               </div>
-            )}
+
+              {layers.person && (
+                <div className="motionGroup">
+                  <strong>
+                    👤 Personagem
+                  </strong>
+
+                  <Slider
+                    title="Horizontal"
+                    value={
+                      person.x
+                    }
+                    min={0}
+                    max={100}
+                    onChange={(x) =>
+                      setPerson(
+                        (old) => ({
+                          ...old,
+                          x,
+                        })
+                      )
+                    }
+                  />
+
+                  <Slider
+                    title="Vertical"
+                    value={
+                      person.y
+                    }
+                    min={0}
+                    max={100}
+                    onChange={(y) =>
+                      setPerson(
+                        (old) => ({
+                          ...old,
+                          y,
+                        })
+                      )
+                    }
+                  />
+
+                  <Slider
+                    title="Tamanho"
+                    value={
+                      person.size
+                    }
+                    min={30}
+                    max={180}
+                    onChange={(
+                      size
+                    ) =>
+                      setPerson(
+                        (old) => ({
+                          ...old,
+                          size,
+                        })
+                      )
+                    }
+                  />
+                </div>
+              )}
+
+              {layers.sign && (
+                <div className="motionGroup">
+                  <strong>
+                    💬 Texto /
+                    objeto
+                  </strong>
+
+                  <Slider
+                    title="Horizontal final"
+                    value={
+                      sign.x
+                    }
+                    min={0}
+                    max={100}
+                    onChange={(x) =>
+                      setSign(
+                        (old) => ({
+                          ...old,
+                          x,
+                        })
+                      )
+                    }
+                  />
+
+                  <Slider
+                    title="Vertical final"
+                    value={
+                      sign.y
+                    }
+                    min={0}
+                    max={100}
+                    onChange={(y) =>
+                      setSign(
+                        (old) => ({
+                          ...old,
+                          y,
+                        })
+                      )
+                    }
+                  />
+
+                  <Slider
+                    title="Tamanho"
+                    value={
+                      sign.size
+                    }
+                    min={10}
+                    max={100}
+                    onChange={(
+                      size
+                    ) =>
+                      setSign(
+                        (old) => ({
+                          ...old,
+                          size,
+                        })
+                      )
+                    }
+                  />
+                </div>
+              )}
+            </div>
           </>
         )}
       </div>
 
       <div className="status">
         <span>
-          {filled}/8 artes adicionadas
+          {filled}/8 artes
+          adicionadas
         </span>
 
         <div>
           <i
             style={{
               width:
-                `${(filled / 8) * 100}%`,
+                `${
+                  (filled / 8) *
+                  100
+                }%`,
             }}
           />
         </div>
       </div>
 
       <section className="grid">
-        {sections.map((s, i) => (
-          <Section
-            key={i}
-            s={s}
-            i={i}
-            onFile={file}
-            onChange={change}
-            onRemove={remove}
-          />
-        ))}
+        {sections.map(
+          (s, i) => (
+            <Section
+              key={i}
+              s={s}
+              i={i}
+              onFile={file}
+              onChange={
+                change
+              }
+              onRemove={
+                remove
+              }
+            />
+          )
+        )}
       </section>
 
       <footer>
-        V3.3 • Motion Layers •
-        Separação automática
+        Prompt Motion •
+        Animação por camadas
       </footer>
     </main>
   );
-              }
+}
