@@ -23,13 +23,24 @@ const names = [
   'CTA Final',
 ];
 
-function Upload({ label, url, onFile, transparent = true }) {
+function Upload({
+  label,
+  url,
+  onFile,
+  transparent = true,
+}) {
   return (
     <label className={'layerUpload ' + (url ? 'hasLayer' : '')}>
       <input
         type="file"
         accept="image/png,image/jpeg,image/webp"
-        onChange={(e) => onFile(e.target.files?.[0])}
+        onChange={(e) => {
+          const selected = e.target.files?.[0];
+
+          if (selected) {
+            onFile(selected);
+          }
+        }}
       />
 
       {url ? (
@@ -37,6 +48,7 @@ function Upload({ label, url, onFile, transparent = true }) {
       ) : (
         <>
           <strong>＋ {label}</strong>
+
           <small>
             {transparent
               ? 'PNG transparente recomendado'
@@ -60,6 +72,7 @@ function Slider({
     <label className="motionSlider">
       <div>
         <span>{title}</span>
+
         <b>
           {value}
           {suffix}
@@ -106,9 +119,13 @@ function Section({
         <input
           type="file"
           accept="image/png,image/jpeg,image/webp"
-          onChange={(e) =>
-            onFile(i, e.target.files?.[0])
-          }
+          onChange={(e) => {
+            const selected = e.target.files?.[0];
+
+            if (selected) {
+              onFile(i, selected);
+            }
+          }}
         />
 
         {s.url ? (
@@ -385,6 +402,15 @@ export default function Page() {
     setSeparateSuccess,
   ] = useState(false);
 
+  /*
+   * CORREÇÃO PRINCIPAL:
+   * guardamos o File real selecionado pelo usuário.
+   */
+  const [
+    originalFile,
+    setOriginalFile,
+  ] = useState(null);
+
   const [layers, setLayers] = useState({
     original: '',
     background: '',
@@ -440,6 +466,29 @@ export default function Page() {
     return url;
   }
 
+  /*
+   * Upload especial da arte completa.
+   * Salva:
+   * 1. URL para mostrar a prévia.
+   * 2. File real para enviar à API.
+   */
+  function setOriginal(file) {
+    if (!file) return;
+
+    setOriginalFile(file);
+
+    const url = makeURL(file);
+
+    setLayers((old) => ({
+      ...old,
+      original: url,
+      person: '',
+    }));
+
+    setSeparateError('');
+    setSeparateSuccess(false);
+  }
+
   function setLayer(name, file) {
     if (!file) return;
 
@@ -449,11 +498,6 @@ export default function Page() {
       ...old,
       [name]: url,
     }));
-
-    if (name === 'original') {
-      setSeparateError('');
-      setSeparateSuccess(false);
-    }
   }
 
   function file(i, f) {
@@ -504,7 +548,7 @@ export default function Page() {
   }
 
   async function separateImage() {
-    if (!layers.original) {
+    if (!originalFile) {
       setSeparateError(
         'Primeiro envie a arte completa.'
       );
@@ -517,44 +561,20 @@ export default function Page() {
       setSeparateError('');
       setSeparateSuccess(false);
 
-      /*
-       * A arte completa está guardada no navegador
-       * como uma URL temporária.
-       *
-       * Aqui recuperamos o arquivo dela.
-       */
-      const originalResponse =
-        await fetch(layers.original);
-
-      if (!originalResponse.ok) {
-        throw new Error(
-          'Não foi possível ler a arte enviada.'
-        );
-      }
-
-      const originalBlob =
-        await originalResponse.blob();
-
-      /*
-       * Monta o formulário que será enviado
-       * para nossa API protegida na Vercel.
-       */
       const formData =
         new FormData();
 
+      /*
+       * Agora enviamos diretamente o File
+       * selecionado no celular.
+       */
       formData.append(
         'image',
-        originalBlob,
-        'landing-original.png'
+        originalFile,
+        originalFile.name ||
+          'landing-original.png'
       );
 
-      /*
-       * IMPORTANTE:
-       *
-       * A chave da Photoroom NÃO fica aqui.
-       * Ela permanece no servidor através da
-       * variável PHOTOROOM_API_KEY da Vercel.
-       */
       const response = await fetch(
         '/api/separate',
         {
@@ -576,19 +596,16 @@ export default function Page() {
           }
 
           if (data?.status) {
-            message += ` Código: ${data.status}.`;
+            message +=
+              ` Código: ${data.status}.`;
           }
         } catch {
-          // Se a API não devolver JSON,
-          // mantemos a mensagem padrão.
+          // Mantém a mensagem padrão.
         }
 
         throw new Error(message);
       }
 
-      /*
-       * A API devolve um PNG transparente.
-       */
       const personBlob =
         await response.blob();
 
@@ -605,26 +622,18 @@ export default function Page() {
 
       urls.current.push(personURL);
 
-      /*
-       * Coloca automaticamente o resultado
-       * dentro da camada Personagem.
-       */
       setLayers((old) => ({
         ...old,
         person: personURL,
       }));
 
-      setSeparateSuccess(true);
-
-      /*
-       * Centraliza a personagem inicialmente.
-       * Depois o usuário pode ajustar.
-       */
       setPerson({
         x: 50,
         y: 50,
         size: 100,
       });
+
+      setSeparateSuccess(true);
     } catch (error) {
       console.error(
         'Erro ao separar:',
@@ -667,7 +676,7 @@ export default function Page() {
           </button>
 
           <span>
-            Preview V3.2 • Motion Layers
+            Preview V3.3 • Motion Layers
           </span>
         </div>
 
@@ -730,7 +739,7 @@ export default function Page() {
         <div className="layerTitle">
           <div>
             <b>
-              V3.2 • MOTION LAYERS
+              V3.3 • MOTION LAYERS
             </b>
 
             <h2>Hero animada</h2>
@@ -784,18 +793,13 @@ export default function Page() {
                 label="Arte completa 9:16"
                 url={layers.original}
                 transparent={false}
-                onFile={(f) =>
-                  setLayer(
-                    'original',
-                    f
-                  )
-                }
+                onFile={setOriginal}
               />
 
               <button
                 className="separateButton"
                 disabled={
-                  !layers.original ||
+                  !originalFile ||
                   separating
                 }
                 onClick={
@@ -1044,9 +1048,9 @@ export default function Page() {
       </section>
 
       <footer>
-        V3.2 • Motion Layers •
-        Separação automática de personagem
+        V3.3 • Motion Layers •
+        Separação automática
       </footer>
     </main>
   );
-            }
+                            }
