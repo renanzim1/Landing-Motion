@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 
 const effects = [
   ['none', 'Sem animação'],
@@ -62,7 +62,6 @@ function Section({ s, i, onFile, onChange, onRemove }) {
       <div className="controls">
         <label>
           Animação
-
           <select
             value={s.effect}
             onChange={(e) =>
@@ -79,7 +78,6 @@ function Section({ s, i, onFile, onChange, onRemove }) {
 
         <label>
           Velocidade <span>{s.speed}s</span>
-
           <input
             type="range"
             min="4"
@@ -93,7 +91,6 @@ function Section({ s, i, onFile, onChange, onRemove }) {
 
         <label>
           Intensidade <span>{s.intensity}%</span>
-
           <input
             type="range"
             min="2"
@@ -110,15 +107,73 @@ function Section({ s, i, onFile, onChange, onRemove }) {
 }
 
 function Animated({ s, i }) {
-  const st = {
+  const ref = useRef(null);
+  const [visible, setVisible] = useState(false);
+  const [progress, setProgress] = useState(0);
+
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+
+    const observer = new IntersectionObserver(
+      ([entry]) => setVisible(entry.isIntersecting),
+      { threshold: 0.12 }
+    );
+
+    observer.observe(el);
+
+    return () => observer.disconnect();
+  }, []);
+
+  useEffect(() => {
+    if (!visible || s.effect !== 'parallax') return;
+
+    let frame;
+
+    const update = () => {
+      if (!ref.current) return;
+
+      const r = ref.current.getBoundingClientRect();
+      const vh = window.innerHeight;
+
+      const p = Math.max(
+        0,
+        Math.min(1, (vh - r.top) / (vh + r.height))
+      );
+
+      setProgress(p);
+    };
+
+    const onScroll = () => {
+      cancelAnimationFrame(frame);
+      frame = requestAnimationFrame(update);
+    };
+
+    update();
+
+    window.addEventListener('scroll', onScroll, {
+      passive: true,
+    });
+
+    return () => {
+      window.removeEventListener('scroll', onScroll);
+      cancelAnimationFrame(frame);
+    };
+  }, [visible, s.effect]);
+
+  const style = {
     '--speed': `${s.speed}s`,
-    '--power': `${s.intensity / 100}`,
+    '--power': s.intensity / 100,
+    '--scroll': progress,
   };
 
   return (
     <section
-      className={`visual fx-${s.effect}`}
-      style={st}
+      ref={ref}
+      className={`visual fx-${s.effect} ${
+        visible ? 'is-visible' : ''
+      }`}
+      style={style}
     >
       {s.url ? (
         <img src={s.url} alt={`Seção ${i + 1}`} />
@@ -144,28 +199,35 @@ export default function Page() {
   const [sections, setSections] = useState(fresh);
   const [preview, setPreview] = useState(false);
 
+  const urlsRef = useRef([]);
+
   const filled = useMemo(
     () => sections.filter((s) => s.url).length,
     [sections]
   );
 
-  useEffect(
-    () => () =>
-      sections.forEach(
-        (s) => s.url && URL.revokeObjectURL(s.url)
-      ),
-    []
-  );
+  useEffect(() => {
+    return () => {
+      urlsRef.current.forEach((url) =>
+        URL.revokeObjectURL(url)
+      );
+    };
+  }, []);
 
   function file(i, f) {
     if (!f) return;
 
+    const url = URL.createObjectURL(f);
+    urlsRef.current.push(url);
+
     setSections((a) =>
-      a.map((s, n) =>
-        n === i
-          ? { ...s, url: URL.createObjectURL(f) }
-          : s
-      )
+      a.map((s, n) => {
+        if (n !== i) return s;
+
+        if (s.url) URL.revokeObjectURL(s.url);
+
+        return { ...s, url };
+      })
     );
   }
 
@@ -179,13 +241,17 @@ export default function Page() {
 
   function remove(i) {
     setSections((a) =>
-      a.map((s, n) =>
-        n === i ? { ...s, url: '' } : s
-      )
+      a.map((s, n) => {
+        if (n !== i) return s;
+
+        if (s.url) URL.revokeObjectURL(s.url);
+
+        return { ...s, url: '' };
+      })
     );
   }
 
-  if (preview)
+  if (preview) {
     return (
       <main className="previewPage">
         <div className="previewBar">
@@ -193,7 +259,7 @@ export default function Page() {
             ← Editor
           </button>
 
-          <span>Preview • {filled}/8 artes</span>
+          <span>Preview V2 • {filled}/8 artes</span>
         </div>
 
         <div className="phone">
@@ -203,6 +269,7 @@ export default function Page() {
         </div>
       </main>
     );
+  }
 
   return (
     <main>
@@ -253,9 +320,8 @@ export default function Page() {
       </section>
 
       <footer>
-        V1 • Mobile 9:16 • As artes são exibidas sem
-        espaço entre as seções.
+        V2 • Mobile 9:16 • Scroll real + transições contínuas.
       </footer>
     </main>
   );
-             }
+}
