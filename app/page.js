@@ -23,6 +23,27 @@ const names = [
   'CTA Final',
 ];
 
+function Upload({ label, url, onFile }) {
+  return (
+    <label className={'layerUpload ' + (url ? 'hasLayer' : '')}>
+      <input
+        type="file"
+        accept="image/*"
+        onChange={(e) => onFile(e.target.files?.[0])}
+      />
+
+      {url ? (
+        <img src={url} alt={label} />
+      ) : (
+        <>
+          <strong>＋ {label}</strong>
+          <small>PNG transparente recomendado</small>
+        </>
+      )}
+    </label>
+  );
+}
+
 function Section({ s, i, onFile, onChange, onRemove }) {
   return (
     <div className="card">
@@ -64,9 +85,7 @@ function Section({ s, i, onFile, onChange, onRemove }) {
           Animação
           <select
             value={s.effect}
-            onChange={(e) =>
-              onChange(i, 'effect', e.target.value)
-            }
+            onChange={(e) => onChange(i, 'effect', e.target.value)}
           >
             {effects.map((x) => (
               <option key={x[0]} value={x[0]}>
@@ -83,9 +102,7 @@ function Section({ s, i, onFile, onChange, onRemove }) {
             min="4"
             max="20"
             value={s.speed}
-            onChange={(e) =>
-              onChange(i, 'speed', e.target.value)
-            }
+            onChange={(e) => onChange(i, 'speed', e.target.value)}
           />
         </label>
 
@@ -96,9 +113,7 @@ function Section({ s, i, onFile, onChange, onRemove }) {
             min="2"
             max="20"
             value={s.intensity}
-            onChange={(e) =>
-              onChange(i, 'intensity', e.target.value)
-            }
+            onChange={(e) => onChange(i, 'intensity', e.target.value)}
           />
         </label>
       </div>
@@ -106,7 +121,7 @@ function Section({ s, i, onFile, onChange, onRemove }) {
   );
 }
 
-function Animated({ s, i }) {
+function NormalAnimated({ s, i }) {
   const ref = useRef(null);
   const [visible, setVisible] = useState(false);
   const [progress, setProgress] = useState(0);
@@ -121,7 +136,6 @@ function Animated({ s, i }) {
     );
 
     observer.observe(el);
-
     return () => observer.disconnect();
   }, []);
 
@@ -136,36 +150,24 @@ function Animated({ s, i }) {
       const r = ref.current.getBoundingClientRect();
       const vh = window.innerHeight;
 
-      const p = Math.max(
-        0,
-        Math.min(1, (vh - r.top) / (vh + r.height))
+      setProgress(
+        Math.max(0, Math.min(1, (vh - r.top) / (vh + r.height)))
       );
-
-      setProgress(p);
     };
 
-    const onScroll = () => {
+    const scroll = () => {
       cancelAnimationFrame(frame);
       frame = requestAnimationFrame(update);
     };
 
     update();
-
-    window.addEventListener('scroll', onScroll, {
-      passive: true,
-    });
+    window.addEventListener('scroll', scroll, { passive: true });
 
     return () => {
-      window.removeEventListener('scroll', onScroll);
+      window.removeEventListener('scroll', scroll);
       cancelAnimationFrame(frame);
     };
   }, [visible, s.effect]);
-
-  const style = {
-    '--speed': `${s.speed}s`,
-    '--power': s.intensity / 100,
-    '--scroll': progress,
-  };
 
   return (
     <section
@@ -173,7 +175,11 @@ function Animated({ s, i }) {
       className={`visual fx-${s.effect} ${
         visible ? 'is-visible' : ''
       }`}
-      style={style}
+      style={{
+        '--speed': `${s.speed}s`,
+        '--power': s.intensity / 100,
+        '--scroll': progress,
+      }}
     >
       {s.url ? (
         <img src={s.url} alt={`Seção ${i + 1}`} />
@@ -181,6 +187,45 @@ function Animated({ s, i }) {
         <div className="empty">
           SEÇÃO {i + 1}
           <small>{names[i]}</small>
+        </div>
+      )}
+    </section>
+  );
+}
+
+function LayerHero({ layers }) {
+  return (
+    <section className="visual layerHero">
+      {layers.background ? (
+        <img
+          className="heroBackground"
+          src={layers.background}
+          alt=""
+        />
+      ) : (
+        <div className="empty">
+          HERO EM CAMADAS
+          <small>Adicione fundo, personagem e placa</small>
+        </div>
+      )}
+
+      {layers.person && (
+        <div className="personMotion">
+          <img
+            className="heroPerson"
+            src={layers.person}
+            alt=""
+          />
+
+          {layers.sign && (
+            <div className="signMotion">
+              <img
+                className="heroSign"
+                src={layers.sign}
+                alt=""
+              />
+            </div>
+          )}
         </div>
       )}
     </section>
@@ -198,8 +243,15 @@ export default function Page() {
 
   const [sections, setSections] = useState(fresh);
   const [preview, setPreview] = useState(false);
+  const [layerMode, setLayerMode] = useState(false);
 
-  const urlsRef = useRef([]);
+  const [layers, setLayers] = useState({
+    background: '',
+    person: '',
+    sign: '',
+  });
+
+  const urls = useRef([]);
 
   const filled = useMemo(
     () => sections.filter((s) => s.url).length,
@@ -208,48 +260,57 @@ export default function Page() {
 
   useEffect(() => {
     return () => {
-      urlsRef.current.forEach((url) =>
-        URL.revokeObjectURL(url)
-      );
+      urls.current.forEach((url) => URL.revokeObjectURL(url));
     };
   }, []);
+
+  function makeURL(file) {
+    if (!file) return '';
+    const url = URL.createObjectURL(file);
+    urls.current.push(url);
+    return url;
+  }
+
+  function setLayer(name, file) {
+    if (!file) return;
+
+    setLayers((old) => ({
+      ...old,
+      [name]: makeURL(file),
+    }));
+  }
 
   function file(i, f) {
     if (!f) return;
 
-    const url = URL.createObjectURL(f);
-    urlsRef.current.push(url);
+    const url = makeURL(f);
 
-    setSections((a) =>
-      a.map((s, n) => {
-        if (n !== i) return s;
-
-        if (s.url) URL.revokeObjectURL(s.url);
-
-        return { ...s, url };
-      })
+    setSections((old) =>
+      old.map((s, n) =>
+        n === i ? { ...s, url } : s
+      )
     );
   }
 
-  function change(i, k, v) {
-    setSections((a) =>
-      a.map((s, n) =>
-        n === i ? { ...s, [k]: v } : s
+  function change(i, key, value) {
+    setSections((old) =>
+      old.map((s, n) =>
+        n === i ? { ...s, [key]: value } : s
       )
     );
   }
 
   function remove(i) {
-    setSections((a) =>
-      a.map((s, n) => {
-        if (n !== i) return s;
-
-        if (s.url) URL.revokeObjectURL(s.url);
-
-        return { ...s, url: '' };
-      })
+    setSections((old) =>
+      old.map((s, n) =>
+        n === i ? { ...s, url: '' } : s
+      )
     );
   }
+
+  const heroReady =
+    layerMode &&
+    (layers.background || layers.person || layers.sign);
 
   if (preview) {
     return (
@@ -259,12 +320,22 @@ export default function Page() {
             ← Editor
           </button>
 
-          <span>Preview V2 • {filled}/8 artes</span>
+          <span>Preview V3 • Motion Layers</span>
         </div>
 
         <div className="phone">
-          {sections.map((s, i) => (
-            <Animated key={i} s={s} i={i} />
+          {heroReady ? (
+            <LayerHero layers={layers} />
+          ) : (
+            <NormalAnimated s={sections[0]} i={0} />
+          )}
+
+          {sections.slice(1).map((s, index) => (
+            <NormalAnimated
+              key={index + 1}
+              s={s}
+              i={index + 1}
+            />
           ))}
         </div>
       </main>
@@ -280,29 +351,68 @@ export default function Page() {
           </div>
 
           <p>
-            Transforme suas artes em uma landing page
-            visual com movimento.
+            Landing pages visuais com movimento por camadas.
           </p>
         </div>
 
         <button
           className="primary"
-          disabled={!filled}
+          disabled={!filled && !heroReady}
           onClick={() => setPreview(true)}
         >
           Visualizar landing →
         </button>
       </header>
 
+      <div className="layerPanel">
+        <div className="layerTitle">
+          <div>
+            <b>V3 • MOTION LAYERS</b>
+            <h2>Hero animada por camadas</h2>
+            <p>
+              Separe fundo, personagem e texto/placa.
+            </p>
+          </div>
+
+          <button
+            className={`modeButton ${
+              layerMode ? 'active' : ''
+            }`}
+            onClick={() => setLayerMode(!layerMode)}
+          >
+            {layerMode
+              ? '✓ Camadas ativadas'
+              : 'Ativar camadas'}
+          </button>
+        </div>
+
+        {layerMode && (
+          <div className="layerGrid">
+            <Upload
+              label="Fundo"
+              url={layers.background}
+              onFile={(f) => setLayer('background', f)}
+            />
+
+            <Upload
+              label="Personagem"
+              url={layers.person}
+              onFile={(f) => setLayer('person', f)}
+            />
+
+            <Upload
+              label="Texto / placa"
+              url={layers.sign}
+              onFile={(f) => setLayer('sign', f)}
+            />
+          </div>
+        )}
+      </div>
+
       <div className="status">
         <span>{filled}/8 artes adicionadas</span>
-
         <div>
-          <i
-            style={{
-              width: `${(filled / 8) * 100}%`,
-            }}
-          />
+          <i style={{ width: `${(filled / 8) * 100}%` }} />
         </div>
       </div>
 
@@ -320,8 +430,8 @@ export default function Page() {
       </section>
 
       <footer>
-        V2 • Mobile 9:16 • Scroll real + transições contínuas.
+        V3 • Motion Layers • Fundo + personagem + elemento
       </footer>
     </main>
   );
-}
+                  }
