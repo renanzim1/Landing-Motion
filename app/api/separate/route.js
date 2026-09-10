@@ -29,11 +29,29 @@ export async function POST(request) {
       image.name || 'landing-image.png'
     );
 
-    form.append('removeBackground', 'true');
+    /*
+     * 1. REMOVE TEXTOS ADICIONADOS
+     * NA ARTE.
+     *
+     * Isso inclui títulos, chamadas,
+     * botões e tipografias inseridas
+     * na composição.
+     */
+    form.append(
+      'textRemoval.mode',
+      'ai.artificial'
+    );
 
     /*
-     * SEGMENTAÇÃO DA PERSONAGEM
-     * Queremos somente a pessoa humana.
+     * 2. REMOVE O FUNDO.
+     */
+    form.append(
+      'removeBackground',
+      'true'
+    );
+
+    /*
+     * 3. MANTÉM SOMENTE A PESSOA.
      */
     form.append(
       'segmentation.mode',
@@ -42,18 +60,17 @@ export async function POST(request) {
 
     form.append(
       'segmentation.prompt',
-      'the complete human woman, her body, face, hair, arms and clothing only'
+      'the complete human woman including face, hair, body, arms, hands and clothing'
+    );
+
+    form.append(
+      'segmentation.negativePrompt',
+      'text, letters, words, typography, title, subtitle, logo, button, graphic overlay, background'
     );
 
     /*
-     * Tudo isso deve ficar FORA
-     * da camada da personagem.
+     * Mantém o enquadramento original.
      */
-    form.append(
-      'segmentation.negativePrompt',
-      'all text, words, letters, typography, handwriting, captions, titles, subtitles, logo, button, graphic design, graphic overlay, decorative elements, background'
-    );
-
     form.append(
       'referenceBox',
       'originalImage'
@@ -64,6 +81,9 @@ export async function POST(request) {
       'originalImage'
     );
 
+    /*
+     * PNG transparente.
+     */
     form.append(
       'export.format',
       'png'
@@ -73,10 +93,13 @@ export async function POST(request) {
       'https://image-api.photoroom.com/v2/edit',
       {
         method: 'POST',
+
         headers: {
           'x-api-key': apiKey,
         },
+
         body: form,
+
         cache: 'no-store',
       }
     );
@@ -85,7 +108,7 @@ export async function POST(request) {
       const message = await response.text();
 
       console.error(
-        'Photoroom segmentation error:',
+        'Photoroom error:',
         response.status,
         message
       );
@@ -95,16 +118,20 @@ export async function POST(request) {
           error: `Photoroom: ${message}`,
           status: response.status,
         },
-        { status: response.status }
+        {
+          status: response.status,
+        }
       );
     }
 
-    const result = await response.arrayBuffer();
+    const result =
+      await response.arrayBuffer();
 
     if (!result.byteLength) {
       return Response.json(
         {
-          error: 'A Photoroom retornou uma imagem vazia.',
+          error:
+            'A Photoroom retornou uma imagem vazia.',
         },
         { status: 502 }
       );
@@ -112,6 +139,7 @@ export async function POST(request) {
 
     return new Response(result, {
       status: 200,
+
       headers: {
         'Content-Type': 'image/png',
         'Cache-Control': 'no-store',
@@ -125,7 +153,8 @@ export async function POST(request) {
 
     return Response.json(
       {
-        error: 'Erro interno ao separar a personagem.',
+        error:
+          'Erro interno ao processar a personagem.',
       },
       { status: 500 }
     );
