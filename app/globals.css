@@ -57,8 +57,7 @@ header p {
 }
 
 .primary:disabled {
-  opacity: 0.35;
-  cursor: not-allowed;
+  opacity: .35;
 }
 
 .status {
@@ -202,7 +201,110 @@ footer {
   padding: 30px;
 }
 
+/* ============================= */
+/* V3 - PAINEL MOTION LAYERS */
+/* ============================= */
+
+.layerPanel {
+  margin-top: 22px;
+  padding: 20px;
+  border-radius: 18px;
+  border: 1px solid #3a3224;
+  background:
+    radial-gradient(
+      circle at top right,
+      rgba(215,179,106,.12),
+      transparent 40%
+    ),
+    #111113;
+}
+
+.layerTitle {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 20px;
+}
+
+.layerTitle b {
+  color: #d7b36a;
+  font-size: 11px;
+  letter-spacing: 1px;
+}
+
+.layerTitle h2 {
+  margin: 5px 0;
+  font-size: 20px;
+}
+
+.layerTitle p {
+  margin: 0;
+  color: #888;
+  font-size: 13px;
+}
+
+.modeButton {
+  border: 1px solid #50452f;
+  background: #181818;
+  color: #d7b36a;
+  padding: 12px 14px;
+  border-radius: 10px;
+  font-weight: 800;
+}
+
+.modeButton.active {
+  background: #d7b36a;
+  color: #111;
+}
+
+.layerGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  margin-top: 18px;
+}
+
+.layerUpload {
+  height: 180px;
+  border: 1px dashed #50452f;
+  border-radius: 14px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  overflow: hidden;
+  cursor: pointer;
+  background: #090909;
+}
+
+.layerUpload input {
+  display: none;
+}
+
+.layerUpload strong {
+  color: #ddd;
+  font-size: 13px;
+}
+
+.layerUpload small {
+  color: #666;
+  font-size: 10px;
+  margin-top: 7px;
+}
+
+.layerUpload.hasLayer {
+  border-style: solid;
+}
+
+.layerUpload img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+/* ============================= */
 /* PREVIEW */
+/* ============================= */
 
 .previewPage {
   max-width: none;
@@ -214,8 +316,8 @@ footer {
   height: 58px;
   position: sticky;
   top: 0;
-  z-index: 50;
-  background: rgba(10, 10, 11, 0.92);
+  z-index: 100;
+  background: rgba(10,10,11,.92);
   backdrop-filter: blur(10px);
   display: flex;
   align-items: center;
@@ -247,27 +349,16 @@ footer {
   overflow: hidden;
   position: relative;
   margin: 0;
-  border: 0;
   background: #000;
-  isolation: isolate;
-  opacity: 0.985;
-  transition: opacity 0.6s ease;
 }
 
-.visual.is-visible {
-  opacity: 1;
-}
-
-.visual img {
+.visual > img {
   position: absolute;
   inset: 0;
   width: 100%;
   height: 100%;
   display: block;
   object-fit: cover;
-  vertical-align: bottom;
-  transform-origin: center center;
-  backface-visibility: hidden;
   will-change: transform, opacity, filter;
 }
 
@@ -277,23 +368,22 @@ footer {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  color: #333;
-  border-bottom: 1px solid #111;
+  color: #444;
 }
 
 .empty small {
   margin-top: 8px;
 }
 
-/* SEM ANIMAÇÃO */
+/* ============================= */
+/* ANIMAÇÕES NORMAIS */
+/* ============================= */
 
-.fx-none img {
+.fx-none > img {
   transform: scale(1.001);
 }
 
-/* ZOOM SUAVE */
-
-.fx-zoom img {
+.fx-zoom > img {
   animation: zoom var(--speed) ease-in-out infinite alternate;
 }
 
@@ -307,9 +397,7 @@ footer {
   }
 }
 
-/* FLUTUAÇÃO */
-
-.fx-float img {
+.fx-float > img {
   animation: float var(--speed) ease-in-out infinite alternate;
 }
 
@@ -319,105 +407,231 @@ footer {
   }
 
   to {
-    transform: scale(1.05)
+    transform:
+      scale(1.05)
       translateY(calc(-120px * var(--power)));
   }
 }
 
-/* MOVIMENTO CONTÍNUO */
-
-.fx-drift img {
+.fx-drift > img {
   animation: drift var(--speed) ease-in-out infinite alternate;
 }
 
 @keyframes drift {
   from {
-    transform: scale(1.08)
+    transform:
+      scale(1.08)
       translateX(calc(-70px * var(--power)));
   }
 
   to {
-    transform: scale(1.08)
+    transform:
+      scale(1.08)
       translateX(calc(70px * var(--power)));
   }
 }
 
-/* PARALLAX REAL */
-
-.fx-parallax img {
+.fx-parallax > img {
   height: 120%;
   top: -10%;
   transform:
-    translateY(calc((var(--scroll) - 0.5) * -16%))
+    translateY(calc((var(--scroll) - .5) * -16%))
     scale(1.04);
 }
 
-/* FADE NO SCROLL */
-
-.fx-fade img {
+.fx-fade > img {
   opacity: 0;
   transform: scale(1.06);
   transition:
     opacity 1.1s ease,
-    transform 1.5s cubic-bezier(.2, .8, .2, 1);
+    transform 1.5s ease;
 }
 
-.fx-fade.is-visible img {
+.fx-fade.is-visible > img {
   opacity: 1;
   transform: scale(1);
 }
 
-/* REVELAÇÃO */
-
-.fx-reveal img {
+.fx-reveal > img {
   opacity: 0;
-  filter: brightness(0.55) blur(4px);
+  filter: brightness(.55) blur(4px);
   transform: scale(1.1);
   transition:
     opacity 1.1s ease,
     filter 1.4s ease,
-    transform 1.8s cubic-bezier(.16, 1, .3, 1);
+    transform 1.8s ease;
 }
 
-.fx-reveal.is-visible img {
+.fx-reveal.is-visible > img {
   opacity: 1;
   filter: brightness(1) blur(0);
   transform: scale(1);
 }
 
-/* CONTINUIDADE ENTRE AS 8 ARTES */
+/* ============================= */
+/* HERO V3 POR CAMADAS */
+/* ============================= */
+
+.layerHero {
+  background: #050505;
+}
+
+/* FUNDO */
+
+.heroBackground {
+  z-index: 1;
+  object-fit: cover !important;
+  animation: backgroundCinema 12s ease-in-out infinite alternate;
+}
+
+@keyframes backgroundCinema {
+  from {
+    transform: scale(1.01);
+  }
+
+  to {
+    transform: scale(1.07);
+  }
+}
+
+/* PERSONAGEM */
+
+.personMotion {
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+  pointer-events: none;
+  transform-origin: center bottom;
+  animation:
+    womanBreathing 3.8s ease-in-out infinite alternate;
+}
+
+.heroPerson {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  inset: 0;
+  object-fit: contain;
+  object-position: center bottom;
+  filter: drop-shadow(0 18px 22px rgba(0,0,0,.18));
+}
+
+@keyframes womanBreathing {
+  0% {
+    transform:
+      translateY(5px)
+      rotate(-.25deg)
+      scale(1);
+  }
+
+  50% {
+    transform:
+      translateY(0)
+      rotate(.15deg)
+      scale(1.008);
+  }
+
+  100% {
+    transform:
+      translateY(-5px)
+      rotate(.35deg)
+      scale(1.012);
+  }
+}
+
+/* TEXTO / PLACA */
+
+.signMotion {
+  position: absolute;
+  z-index: 10;
+
+  /*
+    Posição inicial da placa.
+    Depois podemos colocar controles
+    para mover isso pelo editor.
+  */
+
+  left: 48%;
+  top: 43%;
+
+  width: 45%;
+
+  transform-origin: 10% 85%;
+
+  animation:
+    handSign 2.8s
+    cubic-bezier(.45,.05,.55,.95)
+    infinite alternate;
+}
+
+.heroSign {
+  display: block;
+  width: 100%;
+  height: auto;
+  object-fit: contain;
+
+  filter:
+    drop-shadow(
+      0 12px 18px rgba(0,0,0,.22)
+    );
+}
+
+@keyframes handSign {
+  0% {
+    transform:
+      translate(-4px, 8px)
+      rotate(-4deg)
+      scale(.97);
+  }
+
+  45% {
+    transform:
+      translate(1px, -3px)
+      rotate(1deg)
+      scale(1.01);
+  }
+
+  100% {
+    transform:
+      translate(5px, -9px)
+      rotate(3deg)
+      scale(1.035);
+  }
+}
+
+/* pequena sensação de profundidade */
+
+.layerHero::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 20;
+  pointer-events: none;
+
+  background:
+    radial-gradient(
+      circle at center,
+      transparent 55%,
+      rgba(0,0,0,.08) 100%
+    );
+}
+
+/* ============================= */
+/* UNIÃO ENTRE SEÇÕES */
+/* ============================= */
 
 .phone .visual + .visual {
   margin-top: -2px;
 }
 
-.phone .visual::after {
-  content: "";
-  position: absolute;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  height: 5%;
-  pointer-events: none;
-  z-index: 2;
-  background: linear-gradient(
-    to bottom,
-    transparent,
-    rgba(0, 0, 0, 0.06)
-  );
-}
-
-.phone .visual:last-child::after {
-  display: none;
-}
-
 .phone .visual,
 .phone .visual img {
-  -webkit-transform: translateZ(0);
   backface-visibility: hidden;
 }
 
+/* ============================= */
 /* MOBILE */
+/* ============================= */
 
 @media (max-width: 760px) {
   main {
@@ -449,13 +663,32 @@ footer {
     font-size: 26px;
   }
 
+  .layerTitle {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .modeButton {
+    width: 100%;
+  }
+
+  .layerGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .layerUpload {
+    height: 150px;
+  }
+
   .previewPage {
     padding: 0;
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .visual img {
+  .visual img,
+  .personMotion,
+  .signMotion {
     animation: none !important;
     transition: none !important;
   }
