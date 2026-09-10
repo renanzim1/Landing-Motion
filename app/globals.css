@@ -888,3 +888,401 @@ footer {
     transition: none !important;
   }
 }
+/* ================================= */
+/* PROMPT MOTION */
+/* ================================= */
+
+.promptMotionBox {
+  margin-top: 18px;
+  padding: 18px;
+  border-radius: 16px;
+  background: #0b0b0c;
+  border: 1px solid #3b3325;
+}
+
+.promptMotionBox b {
+  color: #d7b36a;
+  font-size: 10px;
+  letter-spacing: 1px;
+}
+
+.promptMotionBox h3 {
+  margin: 6px 0 12px;
+  font-size: 18px;
+}
+
+.promptMotionBox textarea {
+  width: 100%;
+  min-height: 120px;
+  resize: vertical;
+  border-radius: 13px;
+  border: 1px solid #3a3a3e;
+  background: #151517;
+  color: #f4f4f5;
+  padding: 14px;
+  outline: none;
+  font-family: inherit;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.promptMotionBox textarea:focus {
+  border-color: #d7b36a;
+}
+
+.generateMotionButton {
+  width: 100%;
+  border: 0;
+  border-radius: 12px;
+  margin-top: 12px;
+  padding: 14px;
+  background: #d7b36a;
+  color: #111;
+  font-weight: 900;
+}
+
+.generateMotionButton:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+.motionResult {
+  margin: 12px 0 0;
+  padding: 11px;
+  background: #131b14;
+  border: 1px solid #28442d;
+  border-radius: 10px;
+  color: #79d98c;
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.replayButton {
+  width: 100%;
+  border: 1px solid #50452f;
+  border-radius: 11px;
+  padding: 11px;
+  margin-top: 10px;
+  background: transparent;
+  color: #d7b36a;
+  font-weight: 800;
+}
+
+/* PERSONAGEM MAIS VIVA */
+
+.personMotionAlive {
+  width: 100%;
+  transform-origin: center bottom;
+  animation:
+    personAlive 3.5s
+    ease-in-out
+    infinite alternate;
+}
+
+@keyframes personAlive {
+  from {
+    transform:
+      translateY(0)
+      scale(1);
+  }
+
+  to {
+    transform:
+      translateY(-4px)
+      scale(1.008);
+  }
+}
+
+/* ================================= */
+/* PEGA NA MÃO E COLOCA NO LUGAR */
+/* ================================= */
+
+.motionHoldToPlace {
+  animation:
+    holdToPlace
+    var(--motion-duration)
+    cubic-bezier(.22,.8,.24,1)
+    forwards;
+}
+
+@keyframes holdToPlace {
+  0% {
+    left: var(--hand-x);
+    top: var(--hand-y);
+    opacity: 0;
+    transform:
+      translate(-50%, -50%)
+      scale(.75)
+      rotate(-5deg);
+  }
+
+  12% {
+    left: var(--hand-x);
+    top: var(--hand-y);
+    opacity: 1;
+    transform:
+      translate(-50%, -50%)
+      scale(1)
+      rotate(0deg);
+  }
+
+  42% {
+    left: var(--hand-x);
+    top: var(--hand-y);
+    opacity: 1;
+    transform:
+      translate(-50%, -50%)
+      scale(1)
+      rotate(1deg);
+  }
+
+  78% {
+    left: var(--final-x);
+    top: var(--final-y);
+    opacity: 1;
+    transform:
+      translate(-50%, -50%)
+      scale(1.04);
+  }
+
+  90% {
+    left: var(--final-x);
+    top: var(--final-y);
+    transform:
+      translate(-50%, -50%)
+      scale(.98);
+  }
+
+  100% {
+    left: var(--final-x);
+    top: var(--final-y);
+    opacity: 1;
+    transform:
+      translate(-50%, -50%)
+      scale(1);
+  }
+}
+
+/* ENTRADA ESQUERDA */
+
+.motionEnterLeft {
+  animation:
+    enterLeft
+    var(--motion-duration)
+    cubic-bezier(.2,.8,.2,1)
+    forwards;
+}
+
+@keyframes enterLeft {
+  from {
+    transform:
+      translate(-180%, -50%)
+      rotate(-8deg);
+    opacity: 0;
+  }
+
+  to {
+    transform:
+      translate(-50%, -50%)
+      rotate(0);
+    opacity: 1;
+  }
+}
+
+/* ENTRADA DIREITA */
+
+.motionEnterRight {
+  animation:
+    enterRight
+    var(--motion-duration)
+    cubic-bezier(.2,.8,.2,1)
+    forwards;
+}
+
+@keyframes enterRight {
+  from {
+    transform:
+      translate(80%, -50%)
+      rotate(8deg);
+    opacity: 0;
+  }
+
+  to {
+    transform:
+      translate(-50%, -50%)
+      rotate(0);
+    opacity: 1;
+  }
+}
+
+/* CAIR */
+
+.motionFall {
+  animation:
+    promptFall
+    var(--motion-duration)
+    cubic-bezier(.18,.75,.2,1.2)
+    forwards;
+}
+
+@keyframes promptFall {
+  0% {
+    transform:
+      translate(-50%, -260%)
+      rotate(-10deg);
+    opacity: 0;
+  }
+
+  75% {
+    transform:
+      translate(-50%, -42%)
+      rotate(2deg);
+    opacity: 1;
+  }
+
+  100% {
+    transform:
+      translate(-50%, -50%)
+      rotate(0deg);
+  }
+}
+
+/* SUBIR */
+
+.motionRise {
+  animation:
+    promptRise
+    var(--motion-duration)
+    cubic-bezier(.18,.75,.2,1.2)
+    forwards;
+}
+
+@keyframes promptRise {
+  from {
+    transform:
+      translate(-50%, 160%)
+      scale(.8);
+    opacity: 0;
+  }
+
+  to {
+    transform:
+      translate(-50%, -50%)
+      scale(1);
+    opacity: 1;
+  }
+}
+
+/* GIRO */
+
+.motionSpin {
+  animation:
+    promptSpin
+    var(--motion-duration)
+    ease-out
+    forwards;
+}
+
+@keyframes promptSpin {
+  from {
+    transform:
+      translate(-50%, -50%)
+      rotate(-180deg)
+      scale(.4);
+    opacity: 0;
+  }
+
+  to {
+    transform:
+      translate(-50%, -50%)
+      rotate(0deg)
+      scale(1);
+    opacity: 1;
+  }
+}
+
+/* APARECER */
+
+.motionAppear {
+  animation:
+    promptAppear
+    var(--motion-duration)
+    ease-out
+    forwards;
+}
+
+@keyframes promptAppear {
+  from {
+    opacity: 0;
+    transform:
+      translate(-50%, -50%)
+      scale(.75);
+    filter: blur(8px);
+  }
+
+  to {
+    opacity: 1;
+    transform:
+      translate(-50%, -50%)
+      scale(1);
+    filter: blur(0);
+  }
+}
+
+/* MOVIMENTO SUAVE */
+
+.motionSoft {
+  animation:
+    promptSoft
+    var(--motion-duration)
+    ease-out
+    forwards;
+}
+
+@keyframes promptSoft {
+  from {
+    opacity: 0;
+    transform:
+      translate(-50%, -40%)
+      scale(.92);
+  }
+
+  to {
+    opacity: 1;
+    transform:
+      translate(-50%, -50%)
+      scale(1);
+  }
+}
+
+/* FLUTUAÇÃO */
+
+.motionFloatPrompt {
+  animation:
+    promptFloat
+    var(--motion-duration)
+    ease-in-out
+    infinite alternate;
+}
+
+@keyframes promptFloat {
+  from {
+    transform:
+      translate(-50%, -50%)
+      translateY(-5px)
+      rotate(-1deg);
+  }
+
+  to {
+    transform:
+      translate(-50%, -50%)
+      translateY(7px)
+      rotate(1deg);
+  }
+}
+
+@media (max-width: 700px) {
+  .promptMotionBox textarea {
+    min-height: 105px;
+  }
+}
