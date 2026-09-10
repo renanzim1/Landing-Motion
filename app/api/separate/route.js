@@ -29,8 +29,36 @@ export async function POST(request) {
       image.name || 'landing-image.png'
     );
 
+    // Remove o fundo
     photoRoomForm.append('removeBackground', 'true');
-    photoRoomForm.append('export.format', 'png');
+
+    // Mantém o objeto principal (a pessoa)
+    photoRoomForm.append(
+      'segmentation.mode',
+      'keepSalientObject'
+    );
+
+    // Tenta excluir elementos gráficos/textuais
+    photoRoomForm.append(
+      'segmentation.negativePrompt',
+      'text, typography, button, logo, graphic'
+    );
+
+    // Mantém o tamanho/posição da composição
+    photoRoomForm.append(
+      'referenceBox',
+      'originalImage'
+    );
+
+    photoRoomForm.append(
+      'outputSize',
+      'originalImage'
+    );
+
+    photoRoomForm.append(
+      'export.format',
+      'png'
+    );
 
     const response = await fetch(
       'https://image-api.photoroom.com/v2/edit',
@@ -48,14 +76,18 @@ export async function POST(request) {
       const message = await response.text();
 
       console.error(
-        'Photoroom error:',
+        'Photoroom segmentation error:',
         response.status,
         message
       );
 
       return Response.json(
         {
-          error: 'A Photoroom recusou o processamento.',
+          error:
+            response.status === 402 ||
+            response.status === 403
+              ? 'Sua chave da Photoroom não possui acesso à segmentação avançada.'
+              : 'A Photoroom não conseguiu separar somente a personagem.',
           status: response.status,
         },
         { status: response.status }
@@ -72,11 +104,15 @@ export async function POST(request) {
       },
     });
   } catch (error) {
-    console.error('Separate API error:', error);
+    console.error(
+      'Separate API error:',
+      error
+    );
 
     return Response.json(
       {
-        error: 'Erro interno ao processar a imagem.',
+        error:
+          'Erro interno ao separar a personagem.',
       },
       { status: 500 }
     );
