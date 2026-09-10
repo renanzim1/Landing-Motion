@@ -385,32 +385,16 @@ function LayerHero({
   layers,
   person,
   sign,
+  hand,
   generatedMotion,
   replayKey,
 }) {
-  const handX =
-    generatedMotion.hand ===
-    'left'
-      ? person.x - 14
-      : person.x + 14;
-
-  const handY =
-    person.y + 6;
-
   return (
     <section className="visual layerHero">
       {layers.background ? (
         <img
           className="heroBackground"
-          src={
-            layers.background
-          }
-          alt=""
-        />
-      ) : layers.original ? (
-        <img
-          className="heroBackground"
-          src={layers.original}
+          src={layers.background}
           alt=""
         />
       ) : (
@@ -467,10 +451,10 @@ function LayerHero({
               `${sign.y}%`,
 
             '--hand-x':
-              `${handX}%`,
+              `${hand.x}%`,
 
             '--hand-y':
-              `${handY}%`,
+              `${hand.y}%`,
 
             '--motion-duration':
               `${generatedMotion.duration}s`,
@@ -520,7 +504,6 @@ export default function Page() {
     layers,
     setLayers,
   ] = useState({
-    original: '',
     background: '',
     person: '',
     sign: '',
@@ -542,6 +525,14 @@ export default function Page() {
     x: 68,
     y: 48,
     size: 42,
+  });
+
+  const [
+    hand,
+    setHand,
+  ] = useState({
+    x: 64,
+    y: 58,
   });
 
   const [
@@ -585,8 +576,7 @@ export default function Page() {
   const heroReady =
     layerMode &&
     Boolean(
-      layers.original ||
-        layers.background ||
+      layers.background ||
         layers.person ||
         layers.sign
     );
@@ -789,9 +779,7 @@ export default function Page() {
       );
     } else if (
       text.includes('cai') ||
-      text.includes(
-        'cair'
-      ) ||
+      text.includes('cair') ||
       text.includes(
         'vem de cima'
       )
@@ -915,6 +903,11 @@ export default function Page() {
       size: 42,
     });
 
+    setHand({
+      x: 64,
+      y: 58,
+    });
+
     setGeneratedMotion({
       type: 'none',
       className: '',
@@ -942,8 +935,7 @@ export default function Page() {
           </button>
 
           <span>
-            Preview • Prompt
-            Motion
+            Preview • Prompt Motion
           </span>
         </div>
 
@@ -953,6 +945,7 @@ export default function Page() {
               layers={layers}
               person={person}
               sign={sign}
+              hand={hand}
               generatedMotion={
                 generatedMotion
               }
@@ -1178,7 +1171,7 @@ export default function Page() {
                   </b>
 
                   <h3>
-                    Posição final
+                    Posição das camadas
                   </h3>
                 </div>
 
@@ -1256,8 +1249,53 @@ export default function Page() {
               {layers.sign && (
                 <div className="motionGroup">
                   <strong>
-                    💬 Texto /
-                    objeto
+                    ✋ Onde está a mão
+                  </strong>
+
+                  <Slider
+                    title="Mão X"
+                    value={
+                      hand.x
+                    }
+                    min={0}
+                    max={100}
+                    onChange={(x) =>
+                      setHand(
+                        (old) => ({
+                          ...old,
+                          x,
+                        })
+                      )
+                    }
+                  />
+
+                  <Slider
+                    title="Mão Y"
+                    value={
+                      hand.y
+                    }
+                    min={0}
+                    max={100}
+                    onChange={(y) =>
+                      setHand(
+                        (old) => ({
+                          ...old,
+                          y,
+                        })
+                      )
+                    }
+                  />
+
+                  <strong
+                    style={{
+                      display:
+                        'block',
+                      marginTop:
+                        '22px',
+                    }}
+                  >
+                    💬 Posição final
+                    do texto
                   </strong>
 
                   <Slider
@@ -1363,4 +1401,4 @@ export default function Page() {
       </footer>
     </main>
   );
-}
+        }
