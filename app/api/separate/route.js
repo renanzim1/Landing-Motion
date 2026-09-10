@@ -6,45 +6,73 @@ export async function POST(request) {
 
     if (!apiKey) {
       return Response.json(
-        { error: 'PHOTOROOM_API_KEY não configurada.' },
+        {
+          error:
+            'PHOTOROOM_API_KEY não configurada.',
+        },
         { status: 500 }
       );
     }
 
-    const incoming = await request.formData();
-    const image = incoming.get('image');
+    const incoming =
+      await request.formData();
 
-    if (!image || typeof image === 'string') {
+    const image =
+      incoming.get('image');
+
+    if (
+      !image ||
+      typeof image === 'string'
+    ) {
       return Response.json(
-        { error: 'Nenhuma imagem foi enviada.' },
+        {
+          error:
+            'Nenhuma imagem foi enviada.',
+        },
         { status: 400 }
       );
     }
 
-    const photoRoomForm = new FormData();
+    const photoRoomForm =
+      new FormData();
 
     photoRoomForm.append(
       'imageFile',
       image,
-      image.name || 'landing-image.png'
+      image.name ||
+        'landing-image.png'
     );
 
-    // Remove o fundo
-    photoRoomForm.append('removeBackground', 'true');
+    /*
+     * Remove o fundo.
+     */
+    photoRoomForm.append(
+      'removeBackground',
+      'true'
+    );
 
-    // Mantém o objeto principal (a pessoa)
+    /*
+     * Tentativa de manter somente
+     * o objeto/pessoa principal.
+     */
     photoRoomForm.append(
       'segmentation.mode',
       'keepSalientObject'
     );
 
-    // Tenta excluir elementos gráficos/textuais
+    /*
+     * Tenta excluir textos e
+     * elementos gráficos.
+     */
     photoRoomForm.append(
       'segmentation.negativePrompt',
       'text, typography, button, logo, graphic'
     );
 
-    // Mantém o tamanho/posição da composição
+    /*
+     * Mantém a composição no
+     * tamanho da imagem original.
+     */
     photoRoomForm.append(
       'referenceBox',
       'originalImage'
@@ -55,25 +83,45 @@ export async function POST(request) {
       'originalImage'
     );
 
+    /*
+     * Precisamos de PNG para
+     * preservar transparência.
+     */
     photoRoomForm.append(
       'export.format',
       'png'
     );
 
-    const response = await fetch(
-      'https://image-api.photoroom.com/v2/edit',
-      {
-        method: 'POST',
-        headers: {
-          'x-api-key': apiKey,
-        },
-        body: photoRoomForm,
-        cache: 'no-store',
-      }
-    );
+    const response =
+      await fetch(
+        'https://image-api.photoroom.com/v2/edit',
+        {
+          method: 'POST',
 
+          headers: {
+            'x-api-key': apiKey,
+          },
+
+          body: photoRoomForm,
+
+          cache: 'no-store',
+        }
+      );
+
+    /*
+     * IMPORTANTE:
+     *
+     * Se a Photoroom recusar algum
+     * parâmetro, agora devolvemos
+     * a mensagem ORIGINAL dela
+     * para a Landing Motion.
+     *
+     * Assim conseguimos descobrir
+     * exatamente o motivo do 400.
+     */
     if (!response.ok) {
-      const message = await response.text();
+      const message =
+        await response.text();
 
       console.error(
         'Photoroom segmentation error:',
@@ -84,25 +132,36 @@ export async function POST(request) {
       return Response.json(
         {
           error:
-            response.status === 402 ||
-            response.status === 403
-              ? 'Sua chave da Photoroom não possui acesso à segmentação avançada.'
-              : 'A Photoroom não conseguiu separar somente a personagem.',
+            `Photoroom: ${message}`,
           status: response.status,
         },
-        { status: response.status }
+        {
+          status: response.status,
+        }
       );
     }
 
-    const result = await response.arrayBuffer();
+    /*
+     * Se funcionou, recebe o PNG
+     * transparente da Photoroom.
+     */
+    const result =
+      await response.arrayBuffer();
 
-    return new Response(result, {
-      status: 200,
-      headers: {
-        'Content-Type': 'image/png',
-        'Cache-Control': 'no-store',
-      },
-    });
+    return new Response(
+      result,
+      {
+        status: 200,
+
+        headers: {
+          'Content-Type':
+            'image/png',
+
+          'Cache-Control':
+            'no-store',
+        },
+      }
+    );
   } catch (error) {
     console.error(
       'Separate API error:',
@@ -114,7 +173,9 @@ export async function POST(request) {
         error:
           'Erro interno ao separar a personagem.',
       },
-      { status: 500 }
+      {
+        status: 500,
+      }
     );
   }
 }
