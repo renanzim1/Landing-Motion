@@ -6,9 +6,7 @@ export async function POST(request) {
 
     if (!apiKey) {
       return Response.json(
-        {
-          error: 'PHOTOROOM_API_KEY não configurada.',
-        },
+        { error: 'PHOTOROOM_API_KEY não configurada.' },
         { status: 500 }
       );
     }
@@ -18,72 +16,55 @@ export async function POST(request) {
 
     if (!image || typeof image === 'string') {
       return Response.json(
-        {
-          error: 'Nenhuma imagem foi enviada.',
-        },
+        { error: 'Nenhuma imagem foi enviada.' },
         { status: 400 }
       );
     }
 
-    const photoRoomForm = new FormData();
+    const form = new FormData();
 
-    photoRoomForm.append(
+    form.append(
       'imageFile',
       image,
       image.name || 'landing-image.png'
     );
 
-    /*
-     * Recorte com fundo transparente.
-     */
-    photoRoomForm.append(
-      'removeBackground',
-      'true'
-    );
+    form.append('removeBackground', 'true');
 
     /*
-     * SEGMENTAÇÃO DIRECIONADA
-     *
-     * Dizemos explicitamente o que
-     * queremos manter: somente a pessoa.
+     * SEGMENTAÇÃO DA PERSONAGEM
+     * Queremos somente a pessoa humana.
      */
-    photoRoomForm.append(
+    form.append(
       'segmentation.mode',
       'keepSalientObject'
     );
 
-    photoRoomForm.append(
+    form.append(
       'segmentation.prompt',
-      'person, woman'
+      'the complete human woman, her body, face, hair, arms and clothing only'
     );
 
     /*
-     * Elementos que NÃO queremos
-     * junto da personagem.
+     * Tudo isso deve ficar FORA
+     * da camada da personagem.
      */
-    photoRoomForm.append(
+    form.append(
       'segmentation.negativePrompt',
-      'text, typography, letters, words, logo, button, graphic design, background'
+      'all text, words, letters, typography, handwriting, captions, titles, subtitles, logo, button, graphic design, graphic overlay, decorative elements, background'
     );
 
-    /*
-     * Mantém tamanho e posição
-     * correspondentes à arte original.
-     */
-    photoRoomForm.append(
+    form.append(
       'referenceBox',
       'originalImage'
     );
 
-    photoRoomForm.append(
+    form.append(
       'outputSize',
       'originalImage'
     );
 
-    /*
-     * PNG mantém transparência.
-     */
-    photoRoomForm.append(
+    form.append(
       'export.format',
       'png'
     );
@@ -92,22 +73,14 @@ export async function POST(request) {
       'https://image-api.photoroom.com/v2/edit',
       {
         method: 'POST',
-
         headers: {
           'x-api-key': apiKey,
         },
-
-        body: photoRoomForm,
-
+        body: form,
         cache: 'no-store',
       }
     );
 
-    /*
-     * Se houver outro erro,
-     * continuamos mostrando a mensagem
-     * original da Photoroom na tela.
-     */
     if (!response.ok) {
       const message = await response.text();
 
@@ -122,9 +95,7 @@ export async function POST(request) {
           error: `Photoroom: ${message}`,
           status: response.status,
         },
-        {
-          status: response.status,
-        }
+        { status: response.status }
       );
     }
 
@@ -141,7 +112,6 @@ export async function POST(request) {
 
     return new Response(result, {
       status: 200,
-
       headers: {
         'Content-Type': 'image/png',
         'Cache-Control': 'no-store',
@@ -157,9 +127,7 @@ export async function POST(request) {
       {
         error: 'Erro interno ao separar a personagem.',
       },
-      {
-        status: 500,
-      }
+      { status: 500 }
     );
   }
 }
