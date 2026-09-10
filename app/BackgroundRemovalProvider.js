@@ -19,7 +19,9 @@ export async function removerFundoGratis(file, onProgress) {
 
     const blob = await removeBackground(file, {
       device: 'cpu',
-      model: 'isnet_quint8',
+
+      // Modelo com melhor qualidade de recorte
+      model: 'isnet',
 
       output: {
         format: 'image/png',
@@ -28,7 +30,9 @@ export async function removerFundoGratis(file, onProgress) {
       },
 
       progress: (key, current, total) => {
-        if (!total || !onProgress) return;
+        if (!total || !onProgress) {
+          return;
+        }
 
         const percent = Math.round(
           (current / total) * 100
